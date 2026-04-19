@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!--
+<!--<!--
 ╔══════════════════════════════════════════════════════════════════════════════
   GSD COMMAND ROUTER — AI MAINTENANCE GUIDE
   Version: 1.0 (Phase 2 Complete)
   Last Updated: 2026-04-19
-  
-  This guide helps AI agents (Claude, GPT, Gemini, etc.) understand and 
+
+  This guide helps AI agents (Claude, GPT, Gemini, etc.) understand and
   maintain this codebase correctly. Read this BEFORE making any changes.
 ╚══════════════════════════════════════════════════════════════════════════════
 
@@ -479,8 +479,7 @@ If you're an AI agent and unsure about a change:
 Remember: This is a single-file app maintained by AI. Keep it simple,
 follow conventions, and always test after changes.
 
-═══════════════════════════════════════════════════════════════════════════════
--->
+═══════════════════════════════════════════════════════════════════════════════-->
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -498,7 +497,7 @@ follow conventions, and always test after changes.
   /* Font families with offline fallbacks */
   --font-family: 'Satoshi', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --code-font: 'Satoshi', 'SF Mono', 'Fira Code', 'Consolas', monospace;
-  
+
   /* Google Fonts stack (loaded via CDN, fallback to system) */
   --font-google-sans: 'Google Sans', 'Segoe UI', -apple-system, sans-serif;
   --font-figtree: 'Figtree', 'Segoe UI', -apple-system, sans-serif;
@@ -538,7 +537,7 @@ follow conventions, and always test after changes.
   --radius-lg: 16px;
   --white-dim: rgba(255,255,255,0.06);
   --modal-backdrop: rgba(0,0,0,0.7);
-  
+
   /* Theme color palette */
   --theme-yellow: #e8ff47;
   --theme-red: #ff4d4d;
@@ -554,7 +553,7 @@ body::before {
   content: '';
   position: fixed;
   inset: 0;
-  background: 
+  background:
     radial-gradient(
       ellipse at center,
       transparent 0%,
@@ -856,13 +855,13 @@ code, pre, .cmd-name code, .usage-block, .flag-pill, .cheat-cmd, .related-cmd {
 /* ── Comparison ──────────────────────────── */
 .compare-wrap { max-width: 900px; }
 .compare-selectors { display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px; align-items: center; margin-bottom: 24px; }
-.compare-select { 
-  background: var(--bg1); 
-  border: 1px solid var(--line); 
-  color: var(--t0); 
-  padding: 10px 14px; 
-  border-radius: var(--radius); 
-  font-family: inherit; 
+.compare-select {
+  background: var(--bg1);
+  border: 1px solid var(--line);
+  color: var(--t0);
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  font-family: inherit;
   font-size: 13px;
   max-width: 100%;
   cursor: pointer;
@@ -941,20 +940,20 @@ body.modal-open {
 }
 
 /* Bento Grid for Runtime Selection */
-.runtime-checklist { 
-  display: grid; 
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); 
-  gap: 8px; 
+.runtime-checklist {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 8px;
   margin: 16px 0;
 }
-.checklist-item { 
+.checklist-item {
   position: relative;
-  display: flex; 
-  align-items: center; 
+  display: flex;
+  align-items: center;
   justify-content: center;
   gap: 0;
   padding: 10px 16px;
-  font-size: 12px; 
+  font-size: 12px;
   color: var(--t1);
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
@@ -963,8 +962,8 @@ body.modal-open {
   transition: all 0.15s;
   min-height: 40px;
 }
-.checklist-item:hover { 
-  border-color: var(--line2); 
+.checklist-item:hover {
+  border-color: var(--line2);
   background: var(--bg2);
 }
 .checklist-item.selected {
@@ -981,7 +980,7 @@ body.modal-open {
   transform: translateY(-50%);
   font-weight: 700;
 }
-.checklist-item input[type="checkbox"] { 
+.checklist-item input[type="checkbox"] {
   display: none; /* Hide default checkbox, use custom styling */
 }
 
@@ -1148,7 +1147,7 @@ body.modal-open {
 <div class="modal-overlay" id="settings-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
   <div class="modal-content">
     <h2 id="modal-title">Settings</h2>
-    
+
     <!-- Runtime Selection Section -->
     <div class="settings-section">
       <p style="font-size:13px;color:var(--t1);margin-bottom:12px">Select which runtimes to show in the filter bar:</p>
@@ -1168,11 +1167,11 @@ body.modal-open {
         </button>
       </div>
     </div>
-    
+
     <!-- UI Preferences Section -->
     <div class="settings-section" style="margin-top:24px;padding-top:24px;border-top:1px solid var(--line)">
       <h3 style="font-size:14px;font-weight:700;margin-bottom:16px">UI Preferences</h3>
-      
+
       <div class="preference-row" style="margin-bottom:16px">
         <label style="display:block;font-size:12px;color:var(--t2);margin-bottom:8px">UI Font</label>
         <select id="ui-font-select" class="settings-select">
@@ -1182,7 +1181,7 @@ body.modal-open {
           <option value="Poppins">Poppins</option>
         </select>
       </div>
-      
+
       <div class="preference-row" style="margin-bottom:16px">
         <label style="display:block;font-size:12px;color:var(--t2);margin-bottom:8px">Theme Color</label>
         <div class="color-picker" style="display:flex;gap:8px">
@@ -1193,7 +1192,7 @@ body.modal-open {
           <button class="color-swatch" data-color="#b57fff" style="width:32px;height:32px;border-radius:6px;background:#b57fff;border:2px solid transparent;cursor:pointer" title="Purple"></button>
         </div>
       </div>
-      
+
       <div class="preference-row">
         <label style="display:block;font-size:12px;color:var(--t2);margin-bottom:8px">Code Font</label>
         <select id="code-font-select" class="settings-select">
@@ -2187,10 +2186,10 @@ function restoreState() {
     searchVal = state.searchQuery;
     document.getElementById('search').value = state.searchQuery;
   }
-  
+
   // Restore active filter
   activeFilter = state.activeFilter || 'all';
-  
+
   // Update filter chip UI
   document.querySelectorAll('.chip').forEach(c => {
     c.classList.toggle('on', c.dataset.cat === activeFilter);
@@ -2216,12 +2215,12 @@ function loadHistory() {
 function renderHistory() {
   const container = document.getElementById('history-list');
   if (!container) return;
-  
+
   if (appState.history.length === 0) {
     container.innerHTML = '<p style="color:var(--t2);font-size:12px;padding:0 16px">No recent commands</p>';
     return;
   }
-  
+
   container.innerHTML = appState.history.map(cmdId => {
     const cmd = CMDS.find(c => c.id === cmdId);
     return cmd ? `
@@ -2231,7 +2230,7 @@ function renderHistory() {
       </div>
     ` : '';
   }).join('');
-  
+
   // Add click handlers
   container.querySelectorAll('.history-item').forEach(item => {
     item.addEventListener('click', () => {
@@ -2271,12 +2270,12 @@ function loadFavorites() {
 function renderFavorites() {
   const container = document.getElementById('favorites-list');
   if (!container) return;
-  
+
   if (appState.favorites.length === 0) {
     container.innerHTML = '<p style="color:var(--t2);font-size:12px;padding:0 16px">No favorites yet</p>';
     return;
   }
-  
+
   container.innerHTML = appState.favorites.map(cmdId => {
     const cmd = CMDS.find(c => c.id === cmdId);
     return cmd ? `
@@ -2286,7 +2285,7 @@ function renderFavorites() {
       </div>
     ` : '';
   }).join('');
-  
+
   // Add click handlers
   container.querySelectorAll('.favorites-item').forEach(item => {
     item.addEventListener('click', () => {
@@ -2356,7 +2355,7 @@ function renderRuntimeChecklist() {
       <span>${escHtml(rt)}</span>
     </div>`;
   }).join("");
-  
+
   // Add click listeners for bento grid
   checklist.querySelectorAll(".checklist-item").forEach(item => {
     item.addEventListener("click", () => {
@@ -2380,7 +2379,7 @@ function saveRuntimePreferences() {
     localStorage.setItem("gsd:runtimePreferences", JSON.stringify(selected));
   } catch (e) {}
   selectedRuntimes = selected;
-  
+
   // Save and apply theme color
   const activeSwatch = document.querySelector(".color-swatch.active");
   if (activeSwatch) {
@@ -2394,38 +2393,38 @@ function renderRuntimeChips() {
   const saved = loadRuntimePreferences();
   selectedRuntimes = saved;
   const container = document.getElementById("runtime-filter-row");
-  
+
   if (saved.length === 0) {
     container.style.display = "none";
     return;
   }
-  
+
   container.style.display = "flex";
   const popular = ["Claude Code", "Cursor", "Copilot", "Windsurf"];
   const showDirectly = saved.filter(rt => popular.includes(rt)).slice(0, 4);
   const inDropdown = saved.filter(rt => !showDirectly.includes(rt));
-  
-  let html = showDirectly.map(rt => 
+
+  let html = showDirectly.map(rt =>
     `<button class="chip runtime-chip" data-runtime="${escHtml(rt)}">${escHtml(rt)}</button>`
   ).join("");
-  
+
   if (inDropdown.length > 0) {
     html += `<div class="runtime-dropdown">
       <button class="chip runtime-chip">More ▼</button>
       <div class="runtime-dropdown-content">
-        ${inDropdown.map(rt => 
+        ${inDropdown.map(rt =>
           `<button class="chip runtime-chip" data-runtime="${escHtml(rt)}">${escHtml(rt)}</button>`
         ).join("")}
       </div>
     </div>`;
   }
-  
+
   // Insert before filter toggle
   const toggle = document.getElementById("filter-toggle");
   toggle.style.display = "none"; // Hide until both filters active
   container.innerHTML = html;
   container.appendChild(toggle);
-  
+
   // Add click listeners
   container.querySelectorAll(".runtime-chip").forEach(chip => {
     chip.addEventListener("click", () => toggleRuntimeFilter(chip));
@@ -2435,18 +2434,18 @@ function renderRuntimeChips() {
 function toggleRuntimeFilter(chip) {
   const runtime = chip.dataset.runtime;
   if (!runtime) return; // "More" button
-  
+
   chip.classList.toggle("active");
   runtimeFilter = Array.from(document.querySelectorAll(".runtime-chip.active"))
     .map(c => c.dataset.runtime)
     .filter(Boolean);
-  
+
   // Show/hide filter toggle
   const hasCategoryFilter = activeFilter !== "all";
   const hasRuntimeFilter = runtimeFilter.length > 0;
-  document.getElementById("filter-toggle").style.display = 
+  document.getElementById("filter-toggle").style.display =
     (hasCategoryFilter && hasRuntimeFilter) ? "flex" : "none";
-  
+
   renderCommands();
 }
 
@@ -2488,13 +2487,13 @@ function getFiltered() {
   return CMDS.filter(cmd => {
     // Category filter
     const matchesCategory = activeFilter === "all" || cmd.cat === activeFilter;
-    
+
     // Runtime filter
     let matchesRuntime = true;
     if (runtimeFilter.length > 0) {
       matchesRuntime = runtimeFilter.some(rt => cmd.runtimes.includes(rt));
     }
-    
+
     // Apply AND/OR logic
     let matchesFilters;
     if (filterLogic === "and") {
@@ -2502,11 +2501,11 @@ function getFiltered() {
     } else {
       matchesFilters = matchesCategory || matchesRuntime;
     }
-    
+
     // Search scoring
     const searchScore = scoreCommand(cmd, searchVal);
     const matchesSearch = searchScore > 0 || !searchVal;
-    
+
     return matchesFilters && matchesSearch;
   }).sort((a, b) => {
     // Sort by search score descending
@@ -2648,11 +2647,11 @@ const SIMILAR_PAIRS = [
 function initCompare() {
   const sel1 = document.getElementById("compare-1");
   const sel2 = document.getElementById("compare-2");
-  
+
   // Sort commands alphabetically by cmd name
   const sorted = [...CMDS].sort((a, b) => a.cmd.localeCompare(b.cmd));
   const opts = sorted.map(c => `<option value="${c.id}">${c.cmd}</option>`).join("");
-  
+
   sel1.innerHTML = opts;
   sel2.innerHTML = opts;
   sel2.selectedIndex = 5; // Select a different command by default
@@ -2791,13 +2790,13 @@ function getFiltered() {
 function renderVirtualizedCommands() {
   // TODO: Implement virtual scrolling when command count exceeds VIRTUAL_SCROLL_THRESHOLD
   // For now, delegate to standard renderCommands()
-  // 
+  //
   // Implementation notes for future:
   // 1. Only render visible commands (e.g., 20 at a time)
   // 2. Use scroll position to determine which commands to render
   // 3. Add spacer divs to maintain scroll height
   // 4. See: https://github.com/bvaughn/react-virtualized (reference only)
-  // 
+  //
   // To activate:
   // - Replace renderCommands() call with renderVirtualizedCommands()
   // - Implement windowing logic
@@ -2895,7 +2894,7 @@ function renderCommands() {
       e.stopPropagation();
       const cmdId = btn.dataset.cmd;
       const wasFavorite = appState.favorites.includes(cmdId);
-      
+
       // Toggle favorite
       if (wasFavorite) {
         appState.favorites = appState.favorites.filter(id => id !== cmdId);
@@ -2903,12 +2902,12 @@ function renderCommands() {
         appState.favorites.push(cmdId);
       }
       saveState();
-      
+
       // Update star icon in place (no re-render)
       btn.innerHTML = wasFavorite ? '☆' : '★';
       btn.style.color = wasFavorite ? 'var(--t2)' : 'var(--accent)';
       btn.title = wasFavorite ? 'Add to favorites' : 'Remove from favorites';
-      
+
       // Update sidebar favorites list
       renderFavorites();
     });
@@ -2965,19 +2964,19 @@ document.getElementById("search").addEventListener("input", e => {
 /* ── Keyboard Navigation ─────────────────── */
 document.addEventListener("keydown", e => {
   const search = document.getElementById("search");
-  
+
   // Focus search with /
   if (e.key === "/" && document.activeElement !== search) {
     e.preventDefault();
     switchView("commands");
     search.focus();
   }
-  
+
   // Smart sequential Escape
   if (e.key === "Escape") {
     handleEscape();
   }
-  
+
   // Arrow key navigation (only in commands view)
   if (activeView === "commands" && document.activeElement !== search) {
     const visibleCommands = document.querySelectorAll(".cmd-row:not([style*='display:none'])");
@@ -3012,7 +3011,7 @@ function handleEscape() {
     closeSettingsModal(false);
     return;
   }
-  
+
   // 1st: Close expanded command
   if (openCmd) {
     openCmd = null;
@@ -3028,7 +3027,7 @@ function handleEscape() {
   else {
     document.getElementById("search").blur();
   }
-  
+
   // Reset counter after 2 seconds
   clearTimeout(escapeTimer);
   escapeTimer = setTimeout(() => { escapeCount = 0; }, 2000);
@@ -3077,13 +3076,13 @@ function loadUIPreferences() {
     const uiFont = localStorage.getItem("gsd:uiFont");
     const accentColor = localStorage.getItem("gsd:accentColor");
     const codeFont = localStorage.getItem("gsd:codeFont");
-    
+
     // Load saved UI font
     if (uiFont) {
       document.getElementById("ui-font-select").value = uiFont;
       applyUIFont(uiFont);
     }
-    
+
     // Load saved accent color - apply immediately on page load for UX
     // (but changes in modal require Save click)
     if (accentColor) {
@@ -3093,7 +3092,7 @@ function loadUIPreferences() {
         swatch.classList.toggle("active", swatch.dataset.color.toLowerCase() === accentColor.toLowerCase());
       });
     }
-    
+
     // Load saved code font
     if (codeFont) {
       document.getElementById("code-font-select").value = codeFont;
@@ -3147,15 +3146,15 @@ document.querySelectorAll(".color-swatch").forEach(swatch => {
 // Apply theme color (called from saveRuntimePreferences)
 function applyThemeColor(color) {
   if (!color) return;
-  
+
   const hex = color.replace("#", "");
   const r = parseInt(hex.substring(0, 2), 16);
   const g = parseInt(hex.substring(2, 4), 16);
   const b = parseInt(hex.substring(4, 6), 16);
-  
+
   document.documentElement.style.setProperty("--accent", color);
   document.documentElement.style.setProperty("--theme-yellow", color);
-  
+
   const hoverColor = adjustColorBrightness(color, -20);
   document.documentElement.style.setProperty("--accent-hover", hoverColor);
   document.documentElement.style.setProperty("--accent-dim", `rgba(${r},${g},${b},0.08)`);
