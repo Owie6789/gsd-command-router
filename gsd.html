@@ -1,6 +1,466 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<!--
+╔══════════════════════════════════════════════════════════════════════════════
+  GSD COMMAND ROUTER — AI MAINTENANCE GUIDE
+  Version: 1.0 (Phase 2 Complete)
+  Last Updated: 2026-04-19
+  
+  This guide helps AI agents (Claude, GPT, Gemini, etc.) understand and 
+  maintain this codebase correctly. Read this BEFORE making any changes.
+╚══════════════════════════════════════════════════════════════════════════════
+
+## PROJECT OVERVIEW
+
+**What this is:** Interactive documentation site for 50+ GSD (Get Shit Done) CLI commands.
+**Architecture:** Single-file application (SFA) — all HTML, CSS, JS in one file.
+**Dependencies:** ZERO npm packages. Only external: Fontshare CDN + Google Fonts.
+**Deployment:** Static file hosting (GitHub Pages, Netlify, Vercel, or local file://).
+
+**Key Design Decisions:**
+1. Single-file portability — can run directly from file:// without a server
+2. Zero build step — no bundlers, transpilers, or npm install required
+3. Vanilla JavaScript — no frameworks (React/Vue/Svelte would add unnecessary complexity)
+4. localStorage for persistence — no backend, all state client-side
+
+═══════════════════════════════════════════════════════════════════════════════
+
+## FILE STRUCTURE (within gsd.html)
+
+Lines 1-150:    CSS Variables (:root) and Global Styles
+Lines 151-500:  Component Styles (sidebar, modals, buttons, chips, etc.)
+Lines 501-700:  View-specific Styles (wizard, compare, cheatsheet, etc.)
+Lines 701-900:  HTML Structure (topbar, sidebar, main content views)
+Lines 901-1500: JavaScript Data (CMDS array, RUNTIMES, CAT metadata)
+Lines 1501-2000: State Management (appState, loadState, saveState, restoreState)
+Lines 2000-2500: View Rendering (renderCommands, renderWizard, etc.)
+Lines 2500-3000: Event Handlers (click, keyboard, settings)
+Lines 3000+:    Initialization (restoreState, renderHistory, renderFavorites)
+
+═══════════════════════════════════════════════════════════════════════════════
+
+## STATE MANAGEMENT (CRITICAL — READ BEFORE MODIFYING)
+
+The app uses a centralized state object called `appState`:
+
+```javascript
+let appState = {
+  lastView: 'commands',          // Current view: 'commands', 'wizard', 'flow', etc.
+  searchQuery: '',               // Current search text
+  activeFilter: 'all',           // Category filter: 'all', 'core', 'favorites', etc.
+  runtimeFilter: [],             // Selected runtimes: ['Claude Code', 'Cursor']
+  history: [],                   // Last 10 viewed command IDs (newest first)
+  favorites: []                  // Favorited command IDs
+};
+```
+
+**GOLDEN RULE:** Always call `saveState()` after modifying `appState`:
+```javascript
+// ✅ CORRECT:
+appState.favorites.push(cmdId);
+saveState();
+
+// ❌ WRONG (state won't persist):
+appState.favorites.push(cmdId);
+```
+
+**State Restoration:** On page load, `restoreState()` is called in INIT section.
+It reads from localStorage and restores all state + updates UI to match.
+
+═══════════════════════════════════════════════════════════════════════════════
+
+## CODING CONVENTIONS (FOLLOW THESE EXACTLY)
+
+### CSS Variables (Use These, Don't Add New Colors)
+
+```css
+/* Backgrounds */
+--bg: #080808;       /* Main background */
+--bg1: #0f0f0f;      /* Slightly lighter (cards, inputs) */
+--bg2: #161616;      /* Even lighter (hover states) */
+--bg3: #1e1e1e;      /* Lightest (active states) */
+
+/* Lines/Borders */
+--line: #262626;     /* Default border */
+--line2: #2e2e2e;    /* Hover border */
+
+/* Text Colors */
+--t0: #f5f5f5;       /* Primary text (headings) */
+--t1: #a0a0a0;       /* Secondary text (descriptions) */
+--t2: #5a5a5a;       /* Tertiary text (labels, muted) */
+--t3: #363636;       /* Quaternary (placeholders) */
+
+/* Accent (Theme Color — Dynamic!) */
+--accent: #e8ff47;       /* Yellow (default) — changes with theme */
+--accent-hover: #d4e840; /* Darker yellow for hover */
+--accent-text: #000;     /* Text on accent background (always black) */
+--accent-dim: rgba(232,255,71,0.08);   /* Subtle background tint */
+--accent-dim2: rgba(232,255,71,0.14);  /* Stronger tint (hover) */
+--accent-border: rgba(232,255,71,0.2); /* Border color */
+
+/* Semantic Colors (Don't Change — Used for Badges) */
+--red: #ff4d4d; --blue: #4d9fff; --purple: #b57fff;
+--green: #4dffb0; --orange: #ff9a4d; --pink: #ff6eb4; --teal: #4dd9ff;
+```
+
+**IMPORTANT:** When adding new styles, ALWAYS use variables. Never hardcode hex colors.
+Exception: Theme color swatches (they need actual hex values).
+
+### JavaScript Naming Conventions
+
+```javascript
+// Functions: camelCase, descriptive names
+function renderCommands() {}      // ✅ Good
+function renderCmds() {}          // ❌ Too abbreviated
+function commandsRenderer() {}    // ❌ Inconsistent style
+
+// Variables: camelCase, meaningful names
+let activeFilter = 'all';         // ✅ Good
+let af = 'all';                   // ❌ Unclear abbreviation
+let filterActive = 'all';         // ❌ Inconsistent word order
+
+// State: Always use appState.xxx
+appState.history.push(cmdId);     // ✅ Good
+history.push(cmdId);              // ❌ Won't persist
+
+// Event Handlers: Descriptive, use addEventListener
+btn.addEventListener('click', handleClick);  // ✅ Good
+btn.onclick = handleClick;                   // ❌ Old style
+```
+
+### HTML Structure Patterns
+
+```html
+<!-- View Container -->
+<section class="view" id="view-commands">
+  <div class="page-header">
+    <h1>All Commands</h1>
+    <p>Description text</p>
+  </div>
+  <!-- View content -->
+</section>
+
+<!-- Command Row (in renderCommands template literal) -->
+<div class="cmd-row" data-id="${c.id}" role="button" tabindex="0">
+  <div class="cmd-name"><code>${escHtml(c.cmd)}</code></div>
+  <div class="cmd-short">${escHtml(c.short)}</div>
+  <div class="cmd-meta">
+    <span class="badge ${meta.cls}">${meta.label}</span>
+    <button class="favorite-btn">★</button>
+    <span class="expand-icon">●</span>
+  </div>
+</div>
+
+<!-- Sidebar Section -->
+<div class="sidebar-section">
+  <div class="sidebar-label">Navigate</div>
+  <div class="sidebar-item" data-view="commands">
+    <span class="sidebar-dot" style="background:var(--accent)"></span>
+    All Commands
+  </div>
+</div>
+```
+
+═══════════════════════════════════════════════════════════════════════════════
+
+## HOW TO ADD NEW FEATURES (TEMPLATES)
+
+### Adding a New View
+
+1. **Add HTML** (after existing views, before closing `</main>`):
+```html
+<section class="view" id="view-yourview">
+  <div class="page-header">
+    <h1>Your View Title</h1>
+    <p>Description</p>
+  </div>
+  <div id="yourview-content"><!-- Content --></div>
+</section>
+```
+
+2. **Add Sidebar Link** (in sidebar section):
+```html
+<div class="sidebar-item" data-view="yourview">
+  <span class="sidebar-dot" style="background:var(--purple)"></span>
+  Your View
+</div>
+```
+
+3. **Add View Renderer** (in VIEWS section):
+```javascript
+function renderYourView() {
+  const el = document.getElementById('yourview-content');
+  el.innerHTML = '<!-- Your content -->';
+}
+```
+
+4. **Update switchView()** (add your view to the if-chain):
+```javascript
+if (id === 'yourview') renderYourView();
+```
+
+### Adding a New Setting
+
+1. **Add HTML to Settings Modal**:
+```html
+<div class="preference-row">
+  <label>Setting Name</label>
+  <select id="your-setting-select" class="settings-select">
+    <option value="default">Default</option>
+    <option value="option2">Option 2</option>
+  </select>
+</div>
+```
+
+2. **Add to appState**:
+```javascript
+let appState = {
+  // ... existing state ...
+  yourSetting: 'default'
+};
+```
+
+3. **Add to loadState()/saveState()**:
+```javascript
+function loadState() {
+  return {
+    // ... existing ...
+    yourSetting: localStorage.getItem('gsd:yourSetting') || 'default'
+  };
+}
+function saveState() {
+  localStorage.setItem('gsd:yourSetting', appState.yourSetting);
+}
+```
+
+4. **Add Event Handler** (in UI Preferences section):
+```javascript
+document.getElementById('your-setting-select')?.addEventListener('change', (e) => {
+  appState.yourSetting = e.target.value;
+  saveState();
+});
+```
+
+### Adding a New Command (to CMDS array)
+
+```javascript
+{
+  id: "your-command",
+  cmd: "/gsd-your-command [args]",
+  cat: "core",  // Must match a category in CAT object
+  short: "One-line description",
+  desc: "Full paragraph description",
+  flags: ["--flag1 (description)", "--flag2"],
+  usage: "/gsd-your-command argument",
+  when: "When to use this command",
+  related: ["other-command-1", "other-command-2"],
+  runtimes: RUNTIMES  // Or specific subset
+}
+```
+
+═══════════════════════════════════════════════════════════════════════════════
+
+## COMMON PATTERNS (COPY THESE)
+
+### Pattern 1: Escaping HTML (Prevent XSS)
+```javascript
+// ALWAYS escape user-facing content:
+const safe = escHtml(userInput);
+
+// In template literals:
+`<div>${escHtml(cmd.cmd)}</div>`
+```
+
+### Pattern 2: Event Delegation (Don't Add Listeners in Loops)
+```javascript
+// ✅ CORRECT (one listener, handles all):
+list.addEventListener('click', e => {
+  const btn = e.target.closest('.cmd-row');
+  if (btn) handleCommandClick(btn);
+});
+
+// ❌ WRONG (adds N listeners):
+commands.forEach(cmd => {
+  btn.addEventListener('click', handleClick);
+});
+```
+
+### Pattern 3: Debounced Search (Don't Render on Every Keystroke)
+```javascript
+let searchTimer = null;
+input.addEventListener('input', e => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => {
+    searchVal = e.target.value;
+    renderCommands();
+  }, 300);
+});
+```
+
+### Pattern 4: Conditional Rendering (Show/Hide Elements)
+```javascript
+// ✅ CORRECT (toggle display):
+element.style.display = condition ? 'flex' : 'none';
+
+// ✅ CORRECT (toggle class):
+element.classList.toggle('active', condition);
+```
+
+═══════════════════════════════════════════════════════════════════════════════
+
+## GOTCHAS (COMMON MISTAKES TO AVOID)
+
+### 1. Forgetting saveState()
+```javascript
+// ❌ WRONG — State won't persist:
+appState.favorites.push(cmdId);
+
+// ✅ CORRECT:
+appState.favorites.push(cmdId);
+saveState();
+```
+
+### 2. Hardcoding Colors
+```javascript
+// ❌ WRONG — Breaks theme switching:
+style="color: #e8ff47"
+
+// ✅ CORRECT — Uses theme variable:
+style="color: var(--accent)"
+```
+
+### 3. Not Escaping HTML
+```javascript
+// ❌ WRONG — XSS vulnerability:
+`<div>${userInput}</div>`
+
+// ✅ CORRECT:
+`<div>${escHtml(userInput)}</div>`
+```
+
+### 4. Modifying appState Directly in renderFunctions
+```javascript
+// ❌ WRONG — State changes during render:
+function renderCommands() {
+  appState.lastView = 'commands';  // Don't do this!
+}
+
+// ✅ CORRECT — State changes in event handlers only:
+btn.addEventListener('click', () => {
+  appState.lastView = 'commands';
+  saveState();
+});
+```
+
+### 5. Forgetting to Update Filter Chip UI
+```javascript
+// ❌ WRONG — Variable changed but UI not updated:
+activeFilter = 'core';
+
+// ✅ CORRECT — Update both variable and UI:
+activeFilter = 'core';
+appState.activeFilter = activeFilter;
+saveState();
+document.querySelectorAll('.chip').forEach(c => {
+  c.classList.toggle('on', c.dataset.cat === activeFilter);
+});
+```
+
+═══════════════════════════════════════════════════════════════════════════════
+
+## TESTING CHECKLIST (Before Committing Changes)
+
+After making changes, verify:
+
+**Functionality:**
+- [ ] All views switch correctly (Commands, Wizard, Flow, etc.)
+- [ ] Search works and persists across reloads
+- [ ] Filters work (category, runtime, favorites)
+- [ ] Settings modal opens/closes
+- [ ] Theme color changes apply everywhere
+- [ ] Fonts change when selected
+- [ ] History tracks viewed commands
+- [ ] Favorites toggle correctly
+
+**State Persistence:**
+- [ ] Reload page → last view restored
+- [ ] Reload page → search query restored
+- [ ] Reload page → filters restored
+- [ ] Reload page → history/favorites restored
+
+**Edge Cases:**
+- [ ] Empty states show (no history, no favorites)
+- [ ] Clear data works (Settings → Clear History/Favorites)
+- [ ] Private browsing doesn't crash (localStorage unavailable)
+
+**Visual:**
+- [ ] Dark theme looks correct (no light backgrounds)
+- [ ] Accent color changes everywhere (buttons, badges, borders)
+- [ ] Mobile responsive (test at 860px, 700px breakpoints)
+
+═══════════════════════════════════════════════════════════════════════════════
+
+## PROJECT HISTORY (For Context)
+
+**Phase 1 (Foundation & Search):** Core search, filtering, keyboard navigation
+**Phase 1.1 (UI Polish):** Settings modal, theme colors, font preferences
+**Phase 2 (State & Persistence):** History, favorites, state restoration
+
+**Phase 3:** SKIPPED (Export & Sharing — user didn't want this feature)
+**Phase 4:** THIS GUIDE (AI Maintenance Documentation)
+
+**Future Phases (TBD):**
+- Performance optimization (debouncing, virtual scrolling)
+- Accessibility improvements (ARIA, keyboard navigation)
+- Additional features (command comparison, analytics)
+
+═══════════════════════════════════════════════════════════════════════════════
+
+## QUICK REFERENCE
+
+**Key Functions:**
+- `renderCommands()` — Renders command list with current filters
+- `switchView(id)` — Switches active view
+- `loadState()` / `saveState()` / `restoreState()` — State management
+- `trackHistory(cmdId)` — Adds command to history
+- `toggleFavorite(cmdId)` — Toggles favorite status
+- `escHtml(s)` — Escapes HTML to prevent XSS
+
+**Key Event Handlers:**
+- Search input (debounced, saves state)
+- Filter chips (saves state, re-renders)
+- Command rows (expand/collapse, tracks history)
+- Favorite buttons (toggles in-place, no re-render)
+- Settings modal (runtime config, theme, fonts)
+
+**localStorage Keys:**
+- `gsd:lastView` — Last active view
+- `gsd:searchQuery` — Search text
+- `gsd:activeFilter` — Category filter
+- `gsd:runtimeFilter` — Runtime filters (JSON array)
+- `gsd:history` — Command history (JSON array, max 10)
+- `gsd:favorites` — Favorites (JSON array)
+- `gsd:accentColor` — Theme color (hex)
+- `gsd:uiFont` — UI font name
+- `gsd:codeFont` — Code font name
+
+═══════════════════════════════════════════════════════════════════════════════
+
+## NEED HELP?
+
+If you're an AI agent and unsure about a change:
+1. Search this guide for the pattern you need
+2. Look at existing similar features as examples
+3. Follow existing conventions (naming, structure, style)
+4. Test thoroughly before committing changes
+
+Remember: This is a single-file app maintained by AI. Keep it simple,
+follow conventions, and always test after changes.
+
+═══════════════════════════════════════════════════════════════════════════════
+-->
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GSD — Command Router</title>
