@@ -307,6 +307,27 @@ element.style.display = condition ? 'flex' : 'none';
 element.classList.toggle('active', condition);
 ```
 
+### Pattern 5: Virtual Scrolling (Performance Optimization)
+
+When command count exceeds 100, activate virtual scrolling:
+
+1. Find `renderVirtualizedCommands()` function (already exists)
+2. Implement windowing logic (render only visible commands)
+3. Replace `renderCommands()` call with `renderVirtualizedCommands()`
+
+Current implementation: Standard rendering (fine for <100 commands)
+
+```javascript
+// Threshold constant (already defined)
+const VIRTUAL_SCROLL_THRESHOLD = 100;
+
+// Placeholder function (already exists)
+function renderVirtualizedCommands() {
+  // TODO: Implement when needed
+  renderCommands(); // Current: delegates to standard rendering
+}
+```
+
 ═══════════════════════════════════════════════════════════════════════════════
 
 ## GOTCHAS (COMMON MISTAKES TO AVOID)
@@ -527,6 +548,33 @@ follow conventions, and always test after changes.
 }
 
 html { font-family: var(--font-family); background: var(--bg); color: var(--t0); font-size: 15px; line-height: 1.6; -webkit-font-smoothing: antialiased; scroll-behavior: smooth; }
+
+/* Phase 5: Subtle Background Grid Pattern */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: 
+    radial-gradient(
+      ellipse at center,
+      transparent 0%,
+      transparent 50%,
+      rgba(255,255,255,0.02) 100%
+    ),
+    linear-gradient(
+      to right,
+      rgba(255,255,255,0.03) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      to bottom,
+      rgba(255,255,255,0.03) 1px,
+      transparent 1px
+    );
+  background-size: 100% 100%, 24px 24px, 24px 24px;
+  pointer-events: none;
+  z-index: -1;
+}
 
 /* Code elements use separate font variable */
 code, pre, .cmd-name code, .usage-block, .flag-pill, .cheat-cmd, .related-cmd {
@@ -2089,6 +2137,9 @@ let appState = {
   favorites: []
 };
 
+// Phase 5: Virtual Scrolling Infrastructure
+const VIRTUAL_SCROLL_THRESHOLD = 100; // Activate virtual scrolling when commands exceed this
+
 /* ═══════════════════════════════════════════════════════════
    PHASE 2: STATE PERSISTENCE
    ═══════════════════════════════════════════════════════════ */
@@ -2727,7 +2778,7 @@ function getFiltered() {
     else if (activeFilter !== "all" && c.cat !== activeFilter) {
       return false;
     }
-    
+
     // Search
     if (!searchVal) return true;
     const hay = [c.cmd, c.short, c.desc, c.cat, ...(c.flags||[]), c.when].join(" ").toLowerCase();
@@ -2735,10 +2786,34 @@ function getFiltered() {
   });
 }
 
+// Phase 5: Virtual Scrolling Placeholder
+function renderVirtualizedCommands() {
+  // TODO: Implement virtual scrolling when command count exceeds VIRTUAL_SCROLL_THRESHOLD
+  // For now, delegate to standard renderCommands()
+  // 
+  // Implementation notes for future:
+  // 1. Only render visible commands (e.g., 20 at a time)
+  // 2. Use scroll position to determine which commands to render
+  // 3. Add spacer divs to maintain scroll height
+  // 4. See: https://github.com/bvaughn/react-virtualized (reference only)
+  // 
+  // To activate:
+  // - Replace renderCommands() call with renderVirtualizedCommands()
+  // - Implement windowing logic
+  // - Test with 100+ commands
+  renderCommands();
+}
+
 function renderCommands() {
   const list = document.getElementById("cmd-list");
   const empty = document.getElementById("empty-state");
   const filtered = getFiltered();
+
+  // Phase 5: Check if virtual scrolling should be activated
+  if (filtered.length > VIRTUAL_SCROLL_THRESHOLD) {
+    console.warn(`Command count (${filtered.length}) exceeds threshold (${VIRTUAL_SCROLL_THRESHOLD}). Consider activating virtual scrolling.`);
+    // For now, continue with standard rendering
+  }
 
   if (!filtered.length) {
     list.innerHTML = "";
