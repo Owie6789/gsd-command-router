@@ -2288,6 +2288,10 @@ function loadUIPreferences() {
     // Load saved accent color
     if (accentColor) {
       document.documentElement.style.setProperty("--accent", accentColor);
+      document.documentElement.style.setProperty("--theme-yellow", accentColor);
+      // Calculate and set hover color
+      const hoverColor = adjustColorBrightness(accentColor, -20);
+      document.documentElement.style.setProperty("--accent-hover", hoverColor);
       // Update active swatch
       document.querySelectorAll(".color-swatch").forEach(swatch => {
         swatch.classList.toggle("active", swatch.dataset.color.toLowerCase() === accentColor.toLowerCase());
@@ -2339,12 +2343,31 @@ document.getElementById("code-font-select")?.addEventListener("change", (e) => {
 document.querySelectorAll(".color-swatch").forEach(swatch => {
   swatch.addEventListener("click", () => {
     const color = swatch.dataset.color;
+    
+    // Update accent and all derived colors
     document.documentElement.style.setProperty("--accent", color);
+    document.documentElement.style.setProperty("--theme-yellow", color);
+    
+    // Calculate darker shade for hover (simple hex manipulation)
+    const hoverColor = adjustColorBrightness(color, -20);
+    document.documentElement.style.setProperty("--accent-hover", hoverColor);
+    
+    // Update active swatch
     document.querySelectorAll(".color-swatch").forEach(s => s.classList.remove("active"));
     swatch.classList.add("active");
     try { localStorage.setItem("gsd:accentColor", color); } catch (e) {}
   });
 });
+
+// Helper function to adjust hex color brightness
+function adjustColorBrightness(hex, percent) {
+  const num = parseInt(hex.replace("#", ""), 16);
+  const amt = Math.round(2.55 * percent);
+  const R = Math.max(0, Math.min(255, (num >> 16) + amt));
+  const G = Math.max(0, Math.min(255, ((num >> 8) & 0x00FF) + amt));
+  const B = Math.max(0, Math.min(255, (num & 0x0000FF) + amt));
+  return "#" + (0x1000000 + (R << 16) + (G << 8) + B).toString(16).slice(1);
+}
 
 /* ── Filter Toggle (AND/OR) ──────────────── */
 document.querySelectorAll(".filter-toggle-btn").forEach(btn => {
