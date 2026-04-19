@@ -2298,7 +2298,7 @@ function renderCommands() {
       <div class="cmd-meta">
         <span class="badge ${meta.cls}">${meta.label}</span>
         <button class="favorite-btn" data-cmd="${escHtml(c.id)}" title="${isFavorite ? 'Remove from favorites' : 'Add to favorites'}" style="background:transparent;border:none;color:${isFavorite ? 'var(--accent)' : 'var(--t2)'};cursor:pointer;font-size:20px;margin-right:6px;line-height:1">${isFavorite ? '★' : '☆'}</button>
-        <span class="expand-icon">${isOpen?"⌃":"⌄"}</span>
+        <span class="expand-icon" style="font-size:14px;font-weight:700">${isOpen?"●":"○"}</span>
       </div>
     </div>
     <div class="cmd-detail${isOpen?" open":""}" data-detail="${c.id}">
