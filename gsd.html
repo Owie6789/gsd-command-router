@@ -697,7 +697,16 @@ body.modal-open {
         </select>
       </div>
     </div>
-    
+
+    <!-- Data Management Section -->
+    <div class="settings-section" style="margin-top:24px;padding-top:24px;border-top:1px solid var(--line)">
+      <h3 style="font-size:14px;font-weight:700;margin-bottom:16px">Data Management</h3>
+      <div style="display:flex;gap:8px">
+        <button class="modal-btn modal-btn-cancel" id="clear-history" style="flex:1">Clear History</button>
+        <button class="modal-btn modal-btn-cancel" id="clear-favorites" style="flex:1">Clear Favorites</button>
+      </div>
+    </div>
+
     <div class="modal-actions" style="margin-top:24px;padding-top:24px;border-top:1px solid var(--line)">
       <button class="modal-btn modal-btn-cancel" id="cancel-settings">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -771,6 +780,15 @@ body.modal-open {
       <span class="sidebar-dot" style="background:var(--t1)"></span> Utilities
     </div>
   </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Activity</div>
+    <div id="history-list">
+      <!-- History items injected by JS -->
+    </div>
+    <div id="favorites-list" style="margin-top:8px">
+      <!-- Favorites items injected by JS -->
+    </div>
+  </div>
 </nav>
 
 <!-- ── Main ─────────────────────────────── -->
@@ -799,6 +817,7 @@ body.modal-open {
       <button class="chip" data-cat="session">Session</button>
       <button class="chip" data-cat="quality">Quality</button>
       <button class="chip" data-cat="util">Utilities</button>
+      <button class="chip" data-cat="favorites" style="margin-left:auto">★ Favorites</button>
     </div>
 
     <div class="runtime-filter-row" id="runtime-filter-row" style="display:none">
@@ -1600,6 +1619,173 @@ let escapeCount = 0;
 let escapeTimer = null;
 let focusedCommandIndex = -1;
 
+// Phase 2 State
+let appState = {
+  lastView: 'commands',
+  searchQuery: '',
+  activeFilter: 'all',
+  runtimeFilter: [],
+  history: [],
+  favorites: []
+};
+
+/* ═══════════════════════════════════════════════════════════
+   PHASE 2: STATE PERSISTENCE
+   ═══════════════════════════════════════════════════════════ */
+function loadState() {
+  try {
+    return {
+      lastView: localStorage.getItem('gsd:lastView') || 'commands',
+      searchQuery: localStorage.getItem('gsd:searchQuery') || '',
+      activeFilter: localStorage.getItem('gsd:activeFilter') || 'all',
+      runtimeFilter: JSON.parse(localStorage.getItem('gsd:runtimeFilter') || '[]'),
+      history: JSON.parse(localStorage.getItem('gsd:history') || '[]'),
+      favorites: JSON.parse(localStorage.getItem('gsd:favorites') || '[]')
+    };
+  } catch (e) {
+    console.warn('localStorage unavailable, using defaults');
+    return { ...appState };
+  }
+}
+
+function saveState() {
+  try {
+    localStorage.setItem('gsd:lastView', appState.lastView);
+    localStorage.setItem('gsd:searchQuery', appState.searchQuery);
+    localStorage.setItem('gsd:activeFilter', appState.activeFilter);
+    localStorage.setItem('gsd:runtimeFilter', JSON.stringify(appState.runtimeFilter));
+    localStorage.setItem('gsd:history', JSON.stringify(appState.history));
+    localStorage.setItem('gsd:favorites', JSON.stringify(appState.favorites));
+  } catch (e) {
+    console.warn('Failed to save state:', e);
+  }
+}
+
+function restoreState() {
+  const state = loadState();
+  appState.lastView = state.lastView;
+  appState.searchQuery = state.searchQuery;
+  appState.activeFilter = state.activeFilter;
+  appState.runtimeFilter = state.runtimeFilter;
+  appState.history = state.history;
+  appState.favorites = state.favorites;
+  
+  // Restore UI state
+  if (state.searchQuery) {
+    searchVal = state.searchQuery;
+    document.getElementById('search').value = state.searchQuery;
+  }
+  if (state.activeFilter && state.activeFilter !== 'all') {
+    activeFilter = state.activeFilter;
+  }
+}
+
+// Phase 2: Command History Tracking
+function trackHistory(cmdId) {
+  // Remove if exists (deduplicate)
+  appState.history = appState.history.filter(id => id !== cmdId);
+  // Add to front
+  appState.history.unshift(cmdId);
+  // Limit to 10
+  appState.history = appState.history.slice(0, 10);
+  saveState();
+  renderHistory();
+}
+
+function loadHistory() {
+  return appState.history;
+}
+
+function renderHistory() {
+  const container = document.getElementById('history-list');
+  if (!container) return;
+  
+  if (appState.history.length === 0) {
+    container.innerHTML = '<p style="color:var(--t2);font-size:12px;padding:0 16px">No recent commands</p>';
+    return;
+  }
+  
+  container.innerHTML = appState.history.map(cmdId => {
+    const cmd = CMDS.find(c => c.id === cmdId);
+    return cmd ? `
+      <div class="sidebar-item history-item" data-cmd="${escHtml(cmdId)}">
+        <span class="sidebar-dot" style="background:var(--t2)"></span>
+        <span style="font-size:12px;color:var(--t1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(cmd.cmd)}</span>
+      </div>
+    ` : '';
+  }).join('');
+  
+  // Add click handlers
+  container.querySelectorAll('.history-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const cmdId = item.dataset.cmd;
+      openCmd = cmdId;
+      activeView = 'commands';
+      switchView('commands');
+      renderCommands();
+      // Scroll to command
+      setTimeout(() => {
+        const row = document.querySelector(`.cmd-row[data-id="${cmdId}"]`);
+        if (row) row.scrollIntoView({ behavior:"smooth", block:"center" });
+      }, 100);
+    });
+  });
+}
+
+// Phase 2: Favorites System
+function toggleFavorite(cmdId) {
+  const index = appState.favorites.indexOf(cmdId);
+  if (index > -1) {
+    // Remove
+    appState.favorites.splice(index, 1);
+  } else {
+    // Add
+    appState.favorites.push(cmdId);
+  }
+  saveState();
+  renderCommands(); // Re-render to update star icons
+  renderFavorites();
+}
+
+function loadFavorites() {
+  return appState.favorites;
+}
+
+function renderFavorites() {
+  const container = document.getElementById('favorites-list');
+  if (!container) return;
+  
+  if (appState.favorites.length === 0) {
+    container.innerHTML = '<p style="color:var(--t2);font-size:12px;padding:0 16px">No favorites yet</p>';
+    return;
+  }
+  
+  container.innerHTML = appState.favorites.map(cmdId => {
+    const cmd = CMDS.find(c => c.id === cmdId);
+    return cmd ? `
+      <div class="sidebar-item favorites-item" data-cmd="${escHtml(cmdId)}">
+        <span class="sidebar-dot" style="background:var(--accent)"></span>
+        <span style="font-size:12px;color:var(--t1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(cmd.cmd)}</span>
+      </div>
+    ` : '';
+  }).join('');
+  
+  // Add click handlers
+  container.querySelectorAll('.favorites-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const cmdId = item.dataset.cmd;
+      openCmd = cmdId;
+      activeView = 'commands';
+      switchView('commands');
+      renderCommands();
+      setTimeout(() => {
+        const row = document.querySelector(`.cmd-row[data-id="${cmdId}"]`);
+        if (row) row.scrollIntoView({ behavior:"smooth", block:"center" });
+      }, 100);
+    });
+  });
+}
+
 /* ═══════════════════════════════════════════════════════════
    UTILITIES
    ═══════════════════════════════════════════════════════════ */
@@ -1825,6 +2011,8 @@ function switchView(id) {
   });
 
   activeView = id;
+  appState.lastView = id;
+  saveState();
 
   if (id === "wizard") initWizard();
   if (id === "flow") renderFlow();
@@ -2066,7 +2254,16 @@ function renderFaq() {
    ═══════════════════════════════════════════════════════════ */
 function getFiltered() {
   return CMDS.filter(c => {
-    if (activeFilter !== "all" && c.cat !== activeFilter) return false;
+    // Favorites filter
+    if (activeFilter === 'favorites') {
+      if (!appState.favorites.includes(c.id)) return false;
+    }
+    // Category filter
+    else if (activeFilter !== "all" && c.cat !== activeFilter) {
+      return false;
+    }
+    
+    // Search
     if (!searchVal) return true;
     const hay = [c.cmd, c.short, c.desc, c.cat, ...(c.flags||[]), c.when].join(" ").toLowerCase();
     return hay.includes(searchVal.toLowerCase());
@@ -2088,12 +2285,14 @@ function renderCommands() {
   list.innerHTML = filtered.map(c => {
     const meta = CAT[c.cat] || CAT.util;
     const isOpen = openCmd === c.id;
+    const isFavorite = appState.favorites.includes(c.id);
     return `
     <div class="cmd-row" data-id="${c.id}" role="button" tabindex="0" aria-expanded="${isOpen}">
       <div class="cmd-name"><code>${escHtml(c.cmd)}</code></div>
       <div class="cmd-short">${escHtml(c.short)}</div>
       <div class="cmd-meta">
         <span class="badge ${meta.cls}">${meta.label}</span>
+        <button class="favorite-btn" data-cmd="${escHtml(c.id)}" title="${isFavorite ? 'Remove from favorites' : 'Add to favorites'}" style="background:transparent;border:none;color:${isFavorite ? 'var(--accent)' : 'var(--t2)'};cursor:pointer;font-size:16px;margin-right:6px">${isFavorite ? '★' : '☆'}</button>
         <span class="expand-icon">${isOpen?"▲":"▼"}</span>
       </div>
     </div>
@@ -2137,6 +2336,10 @@ function renderCommands() {
   list.querySelectorAll(".cmd-row").forEach(row => {
     row.addEventListener("click", () => {
       const id = row.dataset.id;
+      // Track history on expand
+      if (openCmd !== id) {
+        trackHistory(id);
+      }
       openCmd = openCmd === id ? null : id;
       renderCommands();
     });
@@ -2145,10 +2348,12 @@ function renderCommands() {
     });
   });
 
-  list.querySelectorAll(".copy-btn").forEach(btn => {
+  // Favorite button click handler
+  list.querySelectorAll(".favorite-btn").forEach(btn => {
     btn.addEventListener("click", e => {
       e.stopPropagation();
-      copyText(btn.dataset.copy, btn);
+      const cmdId = btn.dataset.cmd;
+      toggleFavorite(cmdId);
     });
   });
 
@@ -2175,14 +2380,16 @@ document.getElementById("filter-row").addEventListener("click", e => {
   const chip = e.target.closest(".chip");
   if (!chip) return;
   activeFilter = chip.dataset.cat;
+  appState.activeFilter = activeFilter;
+  saveState();
   document.querySelectorAll(".chip").forEach(c => c.classList.toggle("on", c === chip));
   openCmd = null;
-  
+
   // Show/hide filter toggle
   const hasRuntimeFilter = runtimeFilter.length > 0;
-  document.getElementById("filter-toggle").style.display = 
+  document.getElementById("filter-toggle").style.display =
     (activeFilter !== "all" && hasRuntimeFilter) ? "flex" : "none";
-  
+
   renderCommands();
 });
 
@@ -2191,6 +2398,8 @@ document.getElementById("search").addEventListener("input", e => {
   clearTimeout(searchDebounceTimer);
   searchDebounceTimer = setTimeout(() => {
     searchVal = e.target.value;
+    appState.searchQuery = searchVal;
+    saveState();
     openCmd = null;
     renderCommands();
   }, 300);
@@ -2277,6 +2486,26 @@ document.getElementById("select-all-runtimes").addEventListener("click", () => {
 });
 document.getElementById("clear-all-runtimes").addEventListener("click", () => {
   document.querySelectorAll("#runtime-checklist .checklist-item").forEach(item => item.classList.remove("selected"));
+});
+
+// Data Management
+document.getElementById("clear-history").addEventListener("click', () => {
+  if (confirm('Clear all command history? This cannot be undone.')) {
+    appState.history = [];
+    localStorage.removeItem('gsd:history');
+    renderHistory();
+    showToast('History cleared');
+  }
+});
+
+document.getElementById("clear-favorites").addEventListener("click', () => {
+  if (confirm('Clear all favorites? This cannot be undone.')) {
+    appState.favorites = [];
+    localStorage.removeItem('gsd:favorites');
+    renderFavorites();
+    renderCommands(); // Update star icons
+    showToast('Favorites cleared');
+  }
 });
 
 /* ── UI Preferences ───────────────────────── */
@@ -2792,8 +3021,11 @@ document.getElementById("sidebar").addEventListener("click", e => {
 /* ═══════════════════════════════════════════════════════════
    INIT
    ═══════════════════════════════════════════════════════════ */
+restoreState(); // Restore last view, search, filters, history, favorites
 loadUIPreferences(); // Load UI font, color, code font preferences
 renderRuntimeChips(); // Load runtime preferences from localStorage
+renderHistory(); // Render command history sidebar
+renderFavorites(); // Render favorites sidebar
 renderCommands();
 </script>
 </body>
