@@ -2287,11 +2287,23 @@ function loadUIPreferences() {
     
     // Load saved accent color
     if (accentColor) {
+      const hex = accentColor.replace("#", "");
+      const r = parseInt(hex.substring(0, 2), 16);
+      const g = parseInt(hex.substring(2, 4), 16);
+      const b = parseInt(hex.substring(4, 6), 16);
+      
       document.documentElement.style.setProperty("--accent", accentColor);
       document.documentElement.style.setProperty("--theme-yellow", accentColor);
+      
       // Calculate and set hover color
       const hoverColor = adjustColorBrightness(accentColor, -20);
       document.documentElement.style.setProperty("--accent-hover", hoverColor);
+      
+      // Calculate dim colors dynamically
+      document.documentElement.style.setProperty("--accent-dim", `rgba(${r},${g},${b},0.08)`);
+      document.documentElement.style.setProperty("--accent-dim2", `rgba(${r},${g},${b},0.14)`);
+      document.documentElement.style.setProperty("--accent-border", `rgba(${r},${g},${b},0.2)`);
+      
       // Update active swatch
       document.querySelectorAll(".color-swatch").forEach(swatch => {
         swatch.classList.toggle("active", swatch.dataset.color.toLowerCase() === accentColor.toLowerCase());
@@ -2343,14 +2355,23 @@ document.getElementById("code-font-select")?.addEventListener("change", (e) => {
 document.querySelectorAll(".color-swatch").forEach(swatch => {
   swatch.addEventListener("click", () => {
     const color = swatch.dataset.color;
+    const hex = color.replace("#", "");
+    const r = parseInt(hex.substring(0, 2), 16);
+    const g = parseInt(hex.substring(2, 4), 16);
+    const b = parseInt(hex.substring(4, 6), 16);
     
     // Update accent and all derived colors
     document.documentElement.style.setProperty("--accent", color);
     document.documentElement.style.setProperty("--theme-yellow", color);
     
-    // Calculate darker shade for hover (simple hex manipulation)
+    // Calculate darker shade for hover (20% darker)
     const hoverColor = adjustColorBrightness(color, -20);
     document.documentElement.style.setProperty("--accent-hover", hoverColor);
+    
+    // Calculate dim colors dynamically from theme color
+    document.documentElement.style.setProperty("--accent-dim", `rgba(${r},${g},${b},0.08)`);
+    document.documentElement.style.setProperty("--accent-dim2", `rgba(${r},${g},${b},0.14)`);
+    document.documentElement.style.setProperty("--accent-border", `rgba(${r},${g},${b},0.2)`);
     
     // Update active swatch
     document.querySelectorAll(".color-swatch").forEach(s => s.classList.remove("active"));
