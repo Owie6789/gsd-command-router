@@ -1665,19 +1665,24 @@ function restoreState() {
   const state = loadState();
   appState.lastView = state.lastView;
   appState.searchQuery = state.searchQuery;
-  appState.activeFilter = state.activeFilter;
+  appState.activeFilter = state.activeFilter || 'all';
   appState.runtimeFilter = state.runtimeFilter;
   appState.history = state.history;
   appState.favorites = state.favorites;
-  
+
   // Restore UI state
   if (state.searchQuery) {
     searchVal = state.searchQuery;
     document.getElementById('search').value = state.searchQuery;
   }
-  if (state.activeFilter && state.activeFilter !== 'all') {
-    activeFilter = state.activeFilter;
-  }
+  
+  // Restore active filter
+  activeFilter = state.activeFilter || 'all';
+  
+  // Update filter chip UI
+  document.querySelectorAll('.chip').forEach(c => {
+    c.classList.toggle('on', c.dataset.cat === activeFilter);
+  });
 }
 
 // Phase 2: Command History Tracking
