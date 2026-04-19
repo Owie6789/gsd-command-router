@@ -73,6 +73,12 @@ html { font-family: 'Satoshi', -apple-system, sans-serif; background: var(--bg);
   transition: color .15s, border-color .15s;
 }
 .topbar-link:hover { color: var(--t0); border-color: var(--line2); }
+.topbar-icon-btn {
+  background: transparent; border: 1px solid var(--line); color: var(--t2);
+  padding: 5px 8px; border-radius: var(--radius-sm); cursor: pointer;
+  transition: all .15s; display: flex; align-items: center; justify-content: center;
+}
+.topbar-icon-btn:hover { color: var(--t0); border-color: var(--line2); background: var(--bg1); }
 
 /* ── Sidebar ─────────────────────────────── */
 .sidebar {
@@ -340,6 +346,54 @@ html { font-family: 'Satoshi', -apple-system, sans-serif; background: var(--bg);
 .toast { position: fixed; bottom: 24px; right: 24px; background: var(--bg2); border: 1px solid var(--line2); color: var(--t0); padding: 10px 18px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 500; opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 999; }
 .toast.show { opacity: 1; }
 
+/* ── Settings Modal ─────────────────────── */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(4px); z-index: 999; display: none;
+  align-items: center; justify-content: center;
+}
+.modal-overlay.active { display: flex; }
+.modal-content {
+  background: var(--bg1); border: 1px solid var(--line);
+  border-radius: var(--radius-lg); padding: 24px; width: 90%; max-width: 500px;
+  max-height: 80vh; overflow-y: auto;
+}
+.modal-content h2 { font-size: 18px; font-weight: 700; margin-bottom: 16px; }
+.modal-actions { display: flex; gap: 8px; margin-top: 20px; justify-content: flex-end; }
+.runtime-checklist { display: flex; flex-direction: column; gap: 8px; margin: 16px 0; }
+.checklist-item { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--t1); }
+.checklist-item input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; }
+
+/* ── Runtime Filter Chips ───────────────── */
+.runtime-filter-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px; align-items: center; }
+.runtime-chip.active { background: var(--accent); color: #000; border-color: var(--accent); }
+.runtime-dropdown { position: relative; }
+.runtime-dropdown-content {
+  display: none; position: absolute; top: 100%; left: 0;
+  background: var(--bg2); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 8px; z-index: 10;
+  min-width: 200px; max-height: 300px; overflow-y: auto;
+}
+.runtime-dropdown:hover .runtime-dropdown-content { display: block; }
+
+/* ── Filter Toggle ───────────────────────── */
+.filter-toggle {
+  display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--t2);
+  background: var(--bg1); border: 1px solid var(--line);
+  border-radius: 20px; padding: 4px; margin-left: auto;
+}
+.filter-toggle-btn {
+  padding: 3px 10px; border-radius: 16px; font-size: 11px; font-weight: 600;
+  cursor: pointer; border: none; background: transparent; color: var(--t2);
+  font-family: inherit; transition: all .12s;
+}
+.filter-toggle-btn.active { background: var(--accent); color: #000; }
+
+/* ── Focus Rings ────────────────────────── */
+:focus { outline: 2px solid var(--accent); outline-offset: 2px; }
+:focus:not(:focus-visible) { outline: none; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
 /* ── Responsive ──────────────────────────── */
 @media (max-width: 860px) {
   .app { grid-template-columns: 1fr; grid-template-rows: 56px auto 1fr; }
@@ -353,6 +407,7 @@ html { font-family: 'Satoshi', -apple-system, sans-serif; background: var(--bg);
   .cmd-short { display: none; }
   .compare-selectors { grid-template-columns: 1fr; }
   .compare-result { grid-template-columns: 1fr; }
+  .filter-toggle { margin-left: 0; margin-top: 8px; }
 }
 </style>
 </head>
@@ -367,11 +422,33 @@ html { font-family: 'Satoshi', -apple-system, sans-serif; background: var(--bg);
     <span class="title">Command Router</span>
   </div>
   <div class="topbar-right">
+    <button class="topbar-icon-btn" id="settings-btn" title="Settings" aria-label="Open settings">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+      </svg>
+    </button>
     <a class="topbar-link" href="https://github.com/pydapter/get-shit-done" target="_blank" rel="noopener">
       GitHub ↗
     </a>
   </div>
 </header>
+
+<!-- Settings Modal -->
+<div class="modal-overlay" id="settings-modal">
+  <div class="modal-content">
+    <h2>Settings</h2>
+    <p style="font-size:13px;color:var(--t1);margin-bottom:12px">Select which runtimes to show in the filter bar:</p>
+    <div class="runtime-checklist" id="runtime-checklist">
+      <!-- Checkboxes injected by JS -->
+    </div>
+    <div class="modal-actions">
+      <button class="topbar-link" id="select-all-runtimes">Select All</button>
+      <button class="topbar-link" id="clear-all-runtimes">Clear All</button>
+      <button class="topbar-link" id="cancel-settings" style="margin-left:auto">Cancel</button>
+      <button class="topbar-link" id="save-settings" style="background:var(--accent);color:#000;border-color:var(--accent)">Save</button>
+    </div>
+  </div>
+</div>
 
 <!-- ── Sidebar ───────────────────────────── -->
 <nav class="sidebar" id="sidebar">
@@ -457,6 +534,15 @@ html { font-family: 'Satoshi', -apple-system, sans-serif; background: var(--bg);
       <button class="chip" data-cat="session">Session</button>
       <button class="chip" data-cat="quality">Quality</button>
       <button class="chip" data-cat="util">Utilities</button>
+    </div>
+
+    <div class="runtime-filter-row" id="runtime-filter-row" style="display:none">
+      <!-- Runtime chips injected by JS -->
+      <div class="filter-toggle" id="filter-toggle" style="display:none">
+        <span>Match:</span>
+        <button class="filter-toggle-btn active" data-logic="and">ALL</button>
+        <button class="filter-toggle-btn" data-logic="or">ANY</button>
+      </div>
     </div>
 
     <div class="cmd-list" id="cmd-list"></div>
@@ -1240,6 +1326,15 @@ let activeFilter = "all";
 let searchVal = "";
 let openCmd = null;
 
+// Phase 1 State
+let selectedRuntimes = []; // User's selected runtimes from settings
+let runtimeFilter = []; // Currently active runtime filter chips
+let filterLogic = "and"; // "and" or "or"
+let searchDebounceTimer = null;
+let escapeCount = 0;
+let escapeTimer = null;
+let focusedCommandIndex = -1;
+
 /* ═══════════════════════════════════════════════════════════
    UTILITIES
    ═══════════════════════════════════════════════════════════ */
@@ -1264,6 +1359,169 @@ function showToast(msg) {
 
 function escHtml(s) {
   return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+/* ═══════════════════════════════════════════════════════════
+   PHASE 1: SETTINGS MODAL
+   ═══════════════════════════════════════════════════════════ */
+function openSettingsModal() {
+  renderRuntimeChecklist();
+  document.getElementById("settings-modal").classList.add("active");
+}
+
+function closeSettingsModal(save) {
+  document.getElementById("settings-modal").classList.remove("active");
+  if (save) {
+    saveRuntimePreferences();
+    renderRuntimeChips();
+  }
+}
+
+function renderRuntimeChecklist() {
+  const saved = loadRuntimePreferences();
+  const checklist = document.getElementById("runtime-checklist");
+  checklist.innerHTML = RUNTIMES.map(rt => {
+    const checked = saved.includes(rt) ? "checked" : "";
+    return `<label class="checklist-item">
+      <input type="checkbox" value="${escHtml(rt)}" ${checked}>
+      <span>${escHtml(rt)}</span>
+    </label>`;
+  }).join("");
+}
+
+function loadRuntimePreferences() {
+  try {
+    const stored = localStorage.getItem("gsd:runtimePreferences");
+    if (stored) return JSON.parse(stored);
+  } catch (e) {}
+  return [...RUNTIMES]; // Default: all selected
+}
+
+function saveRuntimePreferences() {
+  const checkboxes = document.querySelectorAll("#runtime-checklist input[type='checkbox']");
+  const selected = Array.from(checkboxes).filter(cb => cb.checked).map(cb => cb.value);
+  try {
+    localStorage.setItem("gsd:runtimePreferences", JSON.stringify(selected));
+  } catch (e) {}
+  selectedRuntimes = selected;
+}
+
+function renderRuntimeChips() {
+  const saved = loadRuntimePreferences();
+  selectedRuntimes = saved;
+  const container = document.getElementById("runtime-filter-row");
+  
+  if (saved.length === 0) {
+    container.style.display = "none";
+    return;
+  }
+  
+  container.style.display = "flex";
+  const popular = ["Claude Code", "Cursor", "Copilot", "Windsurf"];
+  const showDirectly = saved.filter(rt => popular.includes(rt)).slice(0, 4);
+  const inDropdown = saved.filter(rt => !showDirectly.includes(rt));
+  
+  let html = showDirectly.map(rt => 
+    `<button class="chip runtime-chip" data-runtime="${escHtml(rt)}">${escHtml(rt)}</button>`
+  ).join("");
+  
+  if (inDropdown.length > 0) {
+    html += `<div class="runtime-dropdown">
+      <button class="chip runtime-chip">More ▼</button>
+      <div class="runtime-dropdown-content">
+        ${inDropdown.map(rt => 
+          `<button class="chip runtime-chip" data-runtime="${escHtml(rt)}">${escHtml(rt)}</button>`
+        ).join("")}
+      </div>
+    </div>`;
+  }
+  
+  // Insert before filter toggle
+  const toggle = document.getElementById("filter-toggle");
+  toggle.style.display = "none"; // Hide until both filters active
+  container.innerHTML = html;
+  container.appendChild(toggle);
+  
+  // Add click listeners
+  container.querySelectorAll(".runtime-chip").forEach(chip => {
+    chip.addEventListener("click", () => toggleRuntimeFilter(chip));
+  });
+}
+
+function toggleRuntimeFilter(chip) {
+  const runtime = chip.dataset.runtime;
+  if (!runtime) return; // "More" button
+  
+  chip.classList.toggle("active");
+  runtimeFilter = Array.from(document.querySelectorAll(".runtime-chip.active"))
+    .map(c => c.dataset.runtime)
+    .filter(Boolean);
+  
+  // Show/hide filter toggle
+  const hasCategoryFilter = activeFilter !== "all";
+  const hasRuntimeFilter = runtimeFilter.length > 0;
+  document.getElementById("filter-toggle").style.display = 
+    (hasCategoryFilter && hasRuntimeFilter) ? "flex" : "none";
+  
+  renderCommands();
+}
+
+/* ═══════════════════════════════════════════════════════════
+   PHASE 1: WEIGHTED SEARCH SCORING
+   ═══════════════════════════════════════════════════════════ */
+function scoreCommand(cmd, query) {
+  if (!query) return 1; // No query = show all
+  const q = query.toLowerCase().trim();
+  if (q.length < 2) return 0; // Minimum 2 characters
+  
+  let score = 0;
+  const words = q.split(/\s+/);
+  
+  words.forEach(word => {
+    // Command name: 50 points
+    if (cmd.cmd.toLowerCase().includes(word)) score += 50;
+    // Short description: 30 points
+    if (cmd.short.toLowerCase().includes(word)) score += 30;
+    // Flags: 15 points
+    if (cmd.flags.join(" ").toLowerCase().includes(word)) score += 15;
+    // When to use: 5 points
+    if (cmd.when.toLowerCase().includes(word)) score += 5;
+  });
+  
+  // Bonus for matching multiple words
+  if (words.length > 1 && score > 0) score += 10;
+  
+  return score;
+}
+
+function getFiltered() {
+  return CMDS.filter(cmd => {
+    // Category filter
+    const matchesCategory = activeFilter === "all" || cmd.cat === activeFilter;
+    
+    // Runtime filter
+    let matchesRuntime = true;
+    if (runtimeFilter.length > 0) {
+      matchesRuntime = runtimeFilter.some(rt => cmd.runtimes.includes(rt));
+    }
+    
+    // Apply AND/OR logic
+    let matchesFilters;
+    if (filterLogic === "and") {
+      matchesFilters = matchesCategory && matchesRuntime;
+    } else {
+      matchesFilters = matchesCategory || matchesRuntime;
+    }
+    
+    // Search scoring
+    const searchScore = scoreCommand(cmd, searchVal);
+    const matchesSearch = searchScore > 0 || !searchVal;
+    
+    return matchesFilters && matchesSearch;
+  }).sort((a, b) => {
+    // Sort by search score descending
+    return scoreCommand(b, searchVal) - scoreCommand(a, searchVal);
+  });
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -1628,25 +1886,116 @@ document.getElementById("filter-row").addEventListener("click", e => {
   activeFilter = chip.dataset.cat;
   document.querySelectorAll(".chip").forEach(c => c.classList.toggle("on", c === chip));
   openCmd = null;
+  
+  // Show/hide filter toggle
+  const hasRuntimeFilter = runtimeFilter.length > 0;
+  document.getElementById("filter-toggle").style.display = 
+    (activeFilter !== "all" && hasRuntimeFilter) ? "flex" : "none";
+  
   renderCommands();
 });
 
 /* ── Search ──────────────────────────────── */
 document.getElementById("search").addEventListener("input", e => {
-  searchVal = e.target.value;
-  openCmd = null;
-  renderCommands();
+  clearTimeout(searchDebounceTimer);
+  searchDebounceTimer = setTimeout(() => {
+    searchVal = e.target.value;
+    openCmd = null;
+    renderCommands();
+  }, 300);
 });
 
-/* ── Keyboard shortcut ───────────────────── */
+/* ── Keyboard Navigation ─────────────────── */
 document.addEventListener("keydown", e => {
   const search = document.getElementById("search");
+  
+  // Focus search with /
   if (e.key === "/" && document.activeElement !== search) {
     e.preventDefault();
     switchView("commands");
     search.focus();
   }
-  if (e.key === "Escape") { search.blur(); searchVal = ""; search.value = ""; renderCommands(); }
+  
+  // Smart sequential Escape
+  if (e.key === "Escape") {
+    handleEscape();
+  }
+  
+  // Arrow key navigation (only in commands view)
+  if (activeView === "commands" && document.activeElement !== search) {
+    const visibleCommands = document.querySelectorAll(".cmd-row:not([style*='display:none'])");
+    if (e.key === "ArrowDown" && visibleCommands.length > 0) {
+      e.preventDefault();
+      focusedCommandIndex = (focusedCommandIndex + 1) % visibleCommands.length;
+      visibleCommands[focusedCommandIndex].focus();
+    } else if (e.key === "ArrowUp" && visibleCommands.length > 0) {
+      e.preventDefault();
+      focusedCommandIndex = focusedCommandIndex <= 0 ? visibleCommands.length - 1 : focusedCommandIndex - 1;
+      visibleCommands[focusedCommandIndex].focus();
+    } else if (e.key === "Enter" && focusedCommandIndex >= 0) {
+      e.preventDefault();
+      const row = visibleCommands[focusedCommandIndex];
+      if (row) row.click();
+    } else if (e.key === "Home" && visibleCommands.length > 0) {
+      e.preventDefault();
+      focusedCommandIndex = 0;
+      visibleCommands[0].focus();
+    } else if (e.key === "End" && visibleCommands.length > 0) {
+      e.preventDefault();
+      focusedCommandIndex = visibleCommands.length - 1;
+      visibleCommands[visibleCommands.length - 1].focus();
+    }
+  }
+});
+
+function handleEscape() {
+  // If modal open, close it first
+  const modal = document.getElementById("settings-modal");
+  if (modal.classList.contains("active")) {
+    closeSettingsModal(false);
+    return;
+  }
+  
+  // 1st: Close expanded command
+  if (openCmd) {
+    openCmd = null;
+    renderCommands();
+  }
+  // 2nd: Clear search
+  else if (searchVal) {
+    searchVal = "";
+    document.getElementById("search").value = "";
+    renderCommands();
+  }
+  // 3rd: Blur focus
+  else {
+    document.getElementById("search").blur();
+  }
+  
+  // Reset counter after 2 seconds
+  clearTimeout(escapeTimer);
+  escapeTimer = setTimeout(() => { escapeCount = 0; }, 2000);
+}
+
+/* ── Settings Button ─────────────────────── */
+document.getElementById("settings-btn").addEventListener("click", openSettingsModal);
+document.getElementById("cancel-settings").addEventListener("click", () => closeSettingsModal(false));
+document.getElementById("save-settings").addEventListener("click", () => closeSettingsModal(true));
+document.getElementById("select-all-runtimes").addEventListener("click", () => {
+  document.querySelectorAll("#runtime-checklist input[type='checkbox']").forEach(cb => cb.checked = true);
+});
+document.getElementById("clear-all-runtimes").addEventListener("click", () => {
+  document.querySelectorAll("#runtime-checklist input[type='checkbox']").forEach(cb => cb.checked = false);
+});
+
+/* ── Filter Toggle (AND/OR) ──────────────── */
+document.querySelectorAll(".filter-toggle-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".filter-toggle-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    filterLogic = btn.dataset.logic;
+    renderCommands();
+  });
 });
 
 /* ═══════════════════════════════════════════════════════════
@@ -2049,6 +2398,7 @@ document.getElementById("sidebar").addEventListener("click", e => {
 /* ═══════════════════════════════════════════════════════════
    INIT
    ═══════════════════════════════════════════════════════════ */
+renderRuntimeChips(); // Load runtime preferences from localStorage
 renderCommands();
 </script>
 </body>
