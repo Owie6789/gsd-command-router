@@ -208,7 +208,7 @@ code, pre, .cmd-name code, .usage-block, .flag-pill, .cheat-cmd, .related-cmd {
 
 .detail-block label {
   display: block; font-size: 10px; font-weight: 700; text-transform: uppercase;
-  letter-spacing: 0.08em; color: var(--t2); margin-bottom: 8px;
+  letter-spacing: 0.08em; color: var(--accent); margin-bottom: 8px;
 }
 .detail-block p, .detail-block li { font-size: 13px; color: var(--t1); line-height: 1.7; }
 .detail-block ul { padding-left: 16px; }
@@ -216,7 +216,7 @@ code, pre, .cmd-name code, .usage-block, .flag-pill, .cheat-cmd, .related-cmd {
 .usage-block {
   background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius-sm);
   padding: 12px 14px; font-size: 13px; color: var(--accent);
-  font-family: 'Satoshi', monospace; position: relative; overflow-x: auto;
+  font-family: var(--code-font); position: relative; overflow-x: auto;
 }
 .copy-btn {
   position: absolute; top: 8px; right: 8px; background: var(--bg2); border: 1px solid var(--line);
@@ -336,7 +336,21 @@ code, pre, .cmd-name code, .usage-block, .flag-pill, .cheat-cmd, .related-cmd {
 /* ── Comparison ──────────────────────────── */
 .compare-wrap { max-width: 900px; }
 .compare-selectors { display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px; align-items: center; margin-bottom: 24px; }
-.compare-select { background: var(--bg1); border: 1px solid var(--line); color: var(--t0); padding: 10px 14px; border-radius: var(--radius); font-family: inherit; font-size: 13px; }
+.compare-select { 
+  background: var(--bg1); 
+  border: 1px solid var(--line); 
+  color: var(--t0); 
+  padding: 10px 14px; 
+  border-radius: var(--radius); 
+  font-family: inherit; 
+  font-size: 13px;
+  max-width: 100%;
+  cursor: pointer;
+}
+.compare-select:focus {
+  border-color: var(--accent);
+  outline: none;
+}
 .compare-vs { font-size: 14px; font-weight: 700; color: var(--t2); }
 .compare-result { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .compare-card { background: var(--bg1); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; }
@@ -528,9 +542,11 @@ body.modal-open {
 }
 .color-swatch {
   transition: all 0.15s;
+  border: 2px solid transparent;
 }
 .color-swatch:hover {
   transform: scale(1.1);
+  border-color: var(--t0);
 }
 .color-swatch.active {
   border-color: var(--t0);
@@ -1716,24 +1732,30 @@ function scoreCommand(cmd, query) {
   if (!query) return 1; // No query = show all
   const q = query.toLowerCase().trim();
   if (q.length < 2) return 0; // Minimum 2 characters
-  
+
   let score = 0;
   const words = q.split(/\s+/);
-  
+
   words.forEach(word => {
     // Command name: 50 points
     if (cmd.cmd.toLowerCase().includes(word)) score += 50;
     // Short description: 30 points
     if (cmd.short.toLowerCase().includes(word)) score += 30;
+    // Full description: 20 points
+    if (cmd.desc.toLowerCase().includes(word)) score += 20;
     // Flags: 15 points
     if (cmd.flags.join(" ").toLowerCase().includes(word)) score += 15;
-    // When to use: 5 points
-    if (cmd.when.toLowerCase().includes(word)) score += 5;
+    // When to use: 10 points
+    if (cmd.when.toLowerCase().includes(word)) score += 10;
+    // Partial word match (fuzzy): 5 points
+    cmd.cmd.split(/[-/]/).forEach(part => {
+      if (part.includes(word) && word.length >= 3) score += 5;
+    });
   });
-  
+
   // Bonus for matching multiple words
   if (words.length > 1 && score > 0) score += 10;
-  
+
   return score;
 }
 
@@ -1899,10 +1921,14 @@ const SIMILAR_PAIRS = [
 function initCompare() {
   const sel1 = document.getElementById("compare-1");
   const sel2 = document.getElementById("compare-2");
-  const opts = CMDS.map(c => `<option value="${c.id}">${c.cmd} — ${c.short}</option>`).join("");
+  
+  // Sort commands alphabetically by cmd name
+  const sorted = [...CMDS].sort((a, b) => a.cmd.localeCompare(b.cmd));
+  const opts = sorted.map(c => `<option value="${c.id}">${c.cmd}</option>`).join("");
+  
   sel1.innerHTML = opts;
   sel2.innerHTML = opts;
-  sel2.selectedIndex = 1;
+  sel2.selectedIndex = 5; // Select a different command by default
 
   sel1.addEventListener("change", renderCompare);
   sel2.addEventListener("change", renderCompare);
