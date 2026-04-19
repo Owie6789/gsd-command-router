@@ -6,10 +6,22 @@
 <title>GSD — Command Router</title>
 <link rel="preconnect" href="https://api.fontshare.com">
 <link href="https://api.fontshare.com/v2/css?f[]=satoshi@300,400,500,600,700,800,900&display=swap" rel="stylesheet">
+<!-- Additional UI fonts with fallbacks -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Figtree:wght@400;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
+  /* Font families with offline fallbacks */
+  --font-family: 'Satoshi', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --code-font: 'Satoshi', 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  
+  /* Google Fonts stack (loaded via CDN, fallback to system) */
+  --font-google-sans: 'Google Sans', 'Segoe UI', -apple-system, sans-serif;
+  --font-figtree: 'Figtree', 'Segoe UI', -apple-system, sans-serif;
+  --font-poppins: 'Poppins', 'Segoe UI', -apple-system, sans-serif;
   --bg: #080808;
   --bg1: #0f0f0f;
   --bg2: #161616;
@@ -42,7 +54,12 @@
   --radius-lg: 16px;
 }
 
-html { font-family: 'Satoshi', -apple-system, sans-serif; background: var(--bg); color: var(--t0); font-size: 15px; line-height: 1.6; -webkit-font-smoothing: antialiased; scroll-behavior: smooth; }
+html { font-family: var(--font-family); background: var(--bg); color: var(--t0); font-size: 15px; line-height: 1.6; -webkit-font-smoothing: antialiased; scroll-behavior: smooth; }
+
+/* Code elements use separate font variable */
+code, pre, .cmd-name code, .usage-block, .flag-pill, .cheat-cmd, .related-cmd {
+  font-family: var(--code-font);
+}
 
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
@@ -351,23 +368,41 @@ html { font-family: 'Satoshi', -apple-system, sans-serif; background: var(--bg);
   position: fixed; inset: 0; background: rgba(0,0,0,0.7);
   backdrop-filter: blur(4px); z-index: 999; display: none;
   align-items: center; justify-content: center;
+}
+.modal-overlay.active { 
+  display: flex; 
   overflow: hidden; /* Prevent backdrop scroll */
 }
-.modal-overlay.active { display: flex; }
 .modal-content {
   background: var(--bg1); border: 1px solid var(--line);
   border-radius: var(--radius-lg); padding: 24px; width: 90%; max-width: 500px;
   max-height: 80vh; overflow-y: auto; overflow-x: hidden;
   position: relative;
+  /* Contain scrollbar within bounds */
+  scrollbar-gutter: stable;
+  -ms-overflow-style: none; /* Hide scrollbar on IE/Edge */
 }
-.modal-content h2 { font-size: 18px; font-weight: 700; margin-bottom: 16px; }
-.modal-actions { display: flex; gap: 8px; margin-top: 20px; justify-content: flex-end; }
+.modal-content::-webkit-scrollbar { 
+  width: 6px; 
+  height: 6px;
+}
+.modal-content::-webkit-scrollbar-track { 
+  background: var(--bg1); 
+  border-radius: 3px; 
+}
+.modal-content::-webkit-scrollbar-thumb { 
+  background: var(--line2); 
+  border-radius: 3px;
+  border: 1px solid var(--bg1); /* Prevent overflow */
+}
+.modal-content::-webkit-scrollbar-thumb:hover { 
+  background: var(--t3); 
+}
 
-/* Modal scrollbar styling */
-.modal-content::-webkit-scrollbar { width: 6px; }
-.modal-content::-webkit-scrollbar-track { background: var(--bg1); border-radius: 3px; }
-.modal-content::-webkit-scrollbar-thumb { background: var(--line2); border-radius: 3px; }
-.modal-content::-webkit-scrollbar-thumb:hover { background: var(--t3); }
+/* Prevent body scroll when modal open */
+body.modal-open {
+  overflow: hidden;
+}
 
 /* Bento Grid for Runtime Selection */
 .runtime-checklist { 
@@ -416,10 +451,10 @@ html { font-family: 'Satoshi', -apple-system, sans-serif; background: var(--bg);
 
 /* Icon Buttons */
 .icon-btn {
-  background: transparent;
+  background: var(--bg2);
   border: 1px solid var(--line);
-  color: var(--t2);
-  padding: 8px 12px;
+  color: var(--t1);
+  padding: 10px 14px;
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: all 0.15s;
@@ -429,11 +464,48 @@ html { font-family: 'Satoshi', -apple-system, sans-serif; background: var(--bg);
 }
 .icon-btn:hover {
   color: var(--t0);
-  border-color: var(--line2);
-  background: var(--bg1);
+  border-color: var(--accent);
+  background: var(--bg3);
 }
 .icon-btn:active {
   transform: scale(0.95);
+}
+.icon-btn svg {
+  stroke-width: 3; /* Thicker, more visible icons */
+}
+
+/* Modern Modal Action Buttons */
+.modal-btn {
+  padding: 10px 20px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: inherit;
+}
+.modal-btn-cancel {
+  background: var(--bg2);
+  border: 1px solid var(--line);
+  color: var(--t1);
+}
+.modal-btn-cancel:hover {
+  background: var(--bg3);
+  border-color: var(--line2);
+  color: var(--t0);
+}
+.modal-btn-save {
+  background: var(--accent);
+  color: #000;
+  border: 1px solid var(--accent);
+}
+.modal-btn-save:hover {
+  background: #d4e840;
+  border-color: #d4e840;
 }
 
 /* Settings UI Preferences */
@@ -594,9 +666,19 @@ html { font-family: 'Satoshi', -apple-system, sans-serif; background: var(--bg);
       </div>
     </div>
     
-    <div class="modal-actions" style="margin-top:24px;padding-top:24px;border-top:1px solid var(--line)">
-      <button class="topbar-link" id="cancel-settings" style="margin-left:auto">Cancel</button>
-      <button class="topbar-link" id="save-settings" style="background:var(--accent);color:#000;border-color:var(--accent)">Save</button>
+    <div class="modal-actions" style="margin-top:24px;padding-top:24px;border-top:1px solid var(--line);display:flex;gap:8px;justify-content:flex-end">
+      <button class="modal-btn modal-btn-cancel" id="cancel-settings">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M18 6L6 18M6 6l12 12"/>
+        </svg>
+        Cancel
+      </button>
+      <button class="modal-btn modal-btn-save" id="save-settings">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M20 6L9 17l-5-5"/>
+        </svg>
+        Save
+      </button>
     </div>
   </div>
 </div>
@@ -1518,10 +1600,12 @@ function escHtml(s) {
 function openSettingsModal() {
   renderRuntimeChecklist();
   document.getElementById("settings-modal").classList.add("active");
+  document.body.classList.add("modal-open"); // Prevent body scroll
 }
 
 function closeSettingsModal(save) {
   document.getElementById("settings-modal").classList.remove("active");
+  document.body.classList.remove("modal-open"); // Restore body scroll
   if (save) {
     saveRuntimePreferences();
     renderRuntimeChips();
@@ -2163,10 +2247,13 @@ function loadUIPreferences() {
     const accentColor = localStorage.getItem("gsd:accentColor");
     const codeFont = localStorage.getItem("gsd:codeFont");
     
+    // Load saved UI font
     if (uiFont) {
       document.getElementById("ui-font-select").value = uiFont;
-      document.documentElement.style.setProperty("--font-family", uiFont);
+      applyUIFont(uiFont);
     }
+    
+    // Load saved accent color
     if (accentColor) {
       document.documentElement.style.setProperty("--accent", accentColor);
       // Update active swatch
@@ -2174,6 +2261,8 @@ function loadUIPreferences() {
         swatch.classList.toggle("active", swatch.dataset.color.toLowerCase() === accentColor.toLowerCase());
       });
     }
+    
+    // Load saved code font
     if (codeFont) {
       document.getElementById("code-font-select").value = codeFont;
       document.documentElement.style.setProperty("--code-font", codeFont);
@@ -2181,10 +2270,29 @@ function loadUIPreferences() {
   } catch (e) {}
 }
 
+// Apply UI font with proper fallback
+function applyUIFont(fontName) {
+  let fontStack;
+  switch(fontName) {
+    case 'Google Sans':
+      fontStack = "var(--font-google-sans)";
+      break;
+    case 'Figtree':
+      fontStack = "var(--font-figtree)";
+      break;
+    case 'Poppins':
+      fontStack = "var(--font-poppins)";
+      break;
+    default:
+      fontStack = "'Satoshi', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+  }
+  document.documentElement.style.setProperty("--font-family", fontStack);
+}
+
 // UI Font change
 document.getElementById("ui-font-select")?.addEventListener("change", (e) => {
   const font = e.target.value;
-  document.documentElement.style.setProperty("--font-family", font);
+  applyUIFont(font);
   try { localStorage.setItem("gsd:uiFont", font); } catch (e) {}
 });
 
