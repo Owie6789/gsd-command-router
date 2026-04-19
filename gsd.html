@@ -2292,8 +2292,8 @@ function renderCommands() {
       <div class="cmd-short">${escHtml(c.short)}</div>
       <div class="cmd-meta">
         <span class="badge ${meta.cls}">${meta.label}</span>
-        <button class="favorite-btn" data-cmd="${escHtml(c.id)}" title="${isFavorite ? 'Remove from favorites' : 'Add to favorites'}" style="background:transparent;border:none;color:${isFavorite ? 'var(--accent)' : 'var(--t2)'};cursor:pointer;font-size:16px;margin-right:6px">${isFavorite ? '★' : '☆'}</button>
-        <span class="expand-icon">${isOpen?"▲":"▼"}</span>
+        <button class="favorite-btn" data-cmd="${escHtml(c.id)}" title="${isFavorite ? 'Remove from favorites' : 'Add to favorites'}" style="background:transparent;border:none;color:${isFavorite ? 'var(--accent)' : 'var(--t2)'};cursor:pointer;font-size:20px;margin-right:6px;line-height:1">${isFavorite ? '★' : '☆'}</button>
+        <span class="expand-icon">${isOpen?"⌃":"⌄"}</span>
       </div>
     </div>
     <div class="cmd-detail${isOpen?" open":""}" data-detail="${c.id}">
@@ -2353,7 +2353,23 @@ function renderCommands() {
     btn.addEventListener("click", e => {
       e.stopPropagation();
       const cmdId = btn.dataset.cmd;
-      toggleFavorite(cmdId);
+      const wasFavorite = appState.favorites.includes(cmdId);
+      
+      // Toggle favorite
+      if (wasFavorite) {
+        appState.favorites = appState.favorites.filter(id => id !== cmdId);
+      } else {
+        appState.favorites.push(cmdId);
+      }
+      saveState();
+      
+      // Update star icon in place (no re-render)
+      btn.innerHTML = wasFavorite ? '☆' : '★';
+      btn.style.color = wasFavorite ? 'var(--t2)' : 'var(--accent)';
+      btn.title = wasFavorite ? 'Add to favorites' : 'Remove from favorites';
+      
+      // Update sidebar favorites list
+      renderFavorites();
     });
   });
 
@@ -2503,7 +2519,12 @@ document.getElementById("clear-favorites").addEventListener("click", () => {
     appState.favorites = [];
     localStorage.removeItem('gsd:favorites');
     renderFavorites();
-    renderCommands(); // Update star icons
+    // Update all star icons in place (no re-render)
+    document.querySelectorAll(".favorite-btn").forEach(btn => {
+      btn.innerHTML = '☆';
+      btn.style.color = 'var(--t2)';
+      btn.title = 'Add to favorites';
+    });
     showToast('Favorites cleared');
   }
 });
