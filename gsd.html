@@ -2489,7 +2489,7 @@ document.getElementById("clear-all-runtimes").addEventListener("click", () => {
 });
 
 // Data Management
-document.getElementById("clear-history").addEventListener("click', () => {
+document.getElementById("clear-history").addEventListener("click", () => {
   if (confirm('Clear all command history? This cannot be undone.')) {
     appState.history = [];
     localStorage.removeItem('gsd:history');
@@ -2498,7 +2498,7 @@ document.getElementById("clear-history").addEventListener("click', () => {
   }
 });
 
-document.getElementById("clear-favorites").addEventListener("click', () => {
+document.getElementById("clear-favorites").addEventListener("click", () => {
   if (confirm('Clear all favorites? This cannot be undone.')) {
     appState.favorites = [];
     localStorage.removeItem('gsd:favorites');
