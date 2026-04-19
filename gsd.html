@@ -369,39 +369,41 @@ code, pre, .cmd-name code, .usage-block, .flag-pill, .cheat-cmd, .related-cmd {
   backdrop-filter: blur(4px); z-index: 999; display: none;
   align-items: center; justify-content: center;
 }
-.modal-overlay.active { 
-  display: flex; 
-  overflow: hidden; /* Prevent backdrop scroll */
+.modal-overlay.active {
+  display: flex;
 }
 .modal-content {
   background: var(--bg1); border: 1px solid var(--line);
   border-radius: var(--radius-lg); padding: 24px; width: 90%; max-width: 500px;
   max-height: 80vh; overflow-y: auto; overflow-x: hidden;
   position: relative;
-  /* Contain scrollbar within bounds */
-  scrollbar-gutter: stable;
-  -ms-overflow-style: none; /* Hide scrollbar on IE/Edge */
 }
-.modal-content::-webkit-scrollbar { 
-  width: 6px; 
-  height: 6px;
+.modal-content::-webkit-scrollbar {
+  width: 8px;
 }
-.modal-content::-webkit-scrollbar-track { 
-  background: var(--bg1); 
-  border-radius: 3px; 
+.modal-content::-webkit-scrollbar-track {
+  background: var(--bg1);
+  border-radius: 4px;
 }
-.modal-content::-webkit-scrollbar-thumb { 
-  background: var(--line2); 
-  border-radius: 3px;
-  border: 1px solid var(--bg1); /* Prevent overflow */
+.modal-content::-webkit-scrollbar-thumb {
+  background: var(--line2);
+  border-radius: 4px;
 }
-.modal-content::-webkit-scrollbar-thumb:hover { 
-  background: var(--t3); 
+.modal-content::-webkit-scrollbar-thumb:hover {
+  background: var(--t3);
 }
 
 /* Prevent body scroll when modal open */
 body.modal-open {
   overflow: hidden;
+}
+
+/* Modal action buttons row */
+.modal-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  align-items: center;
 }
 
 /* Bento Grid for Runtime Selection */
@@ -666,7 +668,7 @@ body.modal-open {
       </div>
     </div>
     
-    <div class="modal-actions" style="margin-top:24px;padding-top:24px;border-top:1px solid var(--line);display:flex;gap:8px;justify-content:flex-end">
+    <div class="modal-actions" style="margin-top:24px;padding-top:24px;border-top:1px solid var(--line)">
       <button class="modal-btn modal-btn-cancel" id="cancel-settings">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
           <path d="M18 6L6 18M6 6l12 12"/>
