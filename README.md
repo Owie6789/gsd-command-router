@@ -152,7 +152,6 @@ MIT — Do whatever you want with it
 
 **v1.0** — Command Router Core Features
 
-[View Roadmap](.planning/milestones/v1.0-ROADMAP.md) · [AI Maintenance Guide](.planning/AI-MAINTENANCE-GUIDE.md)
 
 Made with ❤️ by [Owie](https://github.com/Owie6789)
 
