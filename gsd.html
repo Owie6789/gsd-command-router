@@ -44,7 +44,7 @@ Lines 3000+:    Initialization (restoreState, renderHistory, renderFavorites)
 
 The app uses a centralized state object called `appState`:
 
-```javascript
+&#96;&#96;&#96;javascript
 let appState = {
   lastView: 'commands',          // Current view: 'commands', 'wizard', 'flow', etc.
   searchQuery: '',               // Current search text
@@ -53,17 +53,17 @@ let appState = {
   history: [],                   // Last 10 viewed command IDs (newest first)
   favorites: []                  // Favorited command IDs
 };
-```
+&#96;&#96;&#96;
 
 **GOLDEN RULE:** Always call `saveState()` after modifying `appState`:
-```javascript
+&#96;&#96;&#96;javascript
 // ✅ CORRECT:
 appState.favorites.push(cmdId);
 saveState();
 
 // ❌ WRONG (state won't persist):
 appState.favorites.push(cmdId);
-```
+&#96;&#96;&#96;
 
 **State Restoration:** On page load, `restoreState()` is called in INIT section.
 It reads from localStorage and restores all state + updates UI to match.
@@ -74,7 +74,7 @@ It reads from localStorage and restores all state + updates UI to match.
 
 ### CSS Variables (Use These, Don't Add New Colors)
 
-```css
+&#96;&#96;&#96;css
 /* Backgrounds */
 --bg: #080808;       /* Main background */
 --bg1: #0f0f0f;      /* Slightly lighter (cards, inputs) */
@@ -102,14 +102,14 @@ It reads from localStorage and restores all state + updates UI to match.
 /* Semantic Colors (Don't Change — Used for Badges) */
 --red: #ff4d4d; --blue: #4d9fff; --purple: #b57fff;
 --green: #4dffb0; --orange: #ff9a4d; --pink: #ff6eb4; --teal: #4dd9ff;
-```
+&#96;&#96;&#96;
 
 **IMPORTANT:** When adding new styles, ALWAYS use variables. Never hardcode hex colors.
 Exception: Theme color swatches (they need actual hex values).
 
 ### JavaScript Naming Conventions
 
-```javascript
+&#96;&#96;&#96;javascript
 // Functions: camelCase, descriptive names
 function renderCommands() {}      // ✅ Good
 function renderCmds() {}          // ❌ Too abbreviated
@@ -127,11 +127,11 @@ history.push(cmdId);              // ❌ Won't persist
 // Event Handlers: Descriptive, use addEventListener
 btn.addEventListener('click', handleClick);  // ✅ Good
 btn.onclick = handleClick;                   // ❌ Old style
-```
+&#96;&#96;&#96;
 
 ### HTML Structure Patterns
 
-```html
+&#96;&#96;&#96;html
 <!-- View Container -->
 <section class="view" id="view-commands">
   <div class="page-header">
@@ -160,7 +160,7 @@ btn.onclick = handleClick;                   // ❌ Old style
     All Commands
   </div>
 </div>
-```
+&#96;&#96;&#96;
 
 ═══════════════════════════════════════════════════════════════════════════════
 
@@ -169,7 +169,7 @@ btn.onclick = handleClick;                   // ❌ Old style
 ### Adding a New View
 
 1. **Add HTML** (after existing views, before closing `</main>`):
-```html
+&#96;&#96;&#96;html
 <section class="view" id="view-yourview">
   <div class="page-header">
     <h1>Your View Title</h1>
@@ -177,33 +177,33 @@ btn.onclick = handleClick;                   // ❌ Old style
   </div>
   <div id="yourview-content"><!-- Content --></div>
 </section>
-```
+&#96;&#96;&#96;
 
 2. **Add Sidebar Link** (in sidebar section):
-```html
+&#96;&#96;&#96;html
 <div class="sidebar-item" data-view="yourview">
   <span class="sidebar-dot" style="background:var(--purple)"></span>
   Your View
 </div>
-```
+&#96;&#96;&#96;
 
 3. **Add View Renderer** (in VIEWS section):
-```javascript
+&#96;&#96;&#96;javascript
 function renderYourView() {
   const el = document.getElementById('yourview-content');
   el.innerHTML = '<!-- Your content -->';
 }
-```
+&#96;&#96;&#96;
 
 4. **Update switchView()** (add your view to the if-chain):
-```javascript
+&#96;&#96;&#96;javascript
 if (id === 'yourview') renderYourView();
-```
+&#96;&#96;&#96;
 
 ### Adding a New Setting
 
 1. **Add HTML to Settings Modal**:
-```html
+&#96;&#96;&#96;html
 <div class="preference-row">
   <label>Setting Name</label>
   <select id="your-setting-select" class="settings-select">
@@ -211,18 +211,18 @@ if (id === 'yourview') renderYourView();
     <option value="option2">Option 2</option>
   </select>
 </div>
-```
+&#96;&#96;&#96;
 
 2. **Add to appState**:
-```javascript
+&#96;&#96;&#96;javascript
 let appState = {
   // ... existing state ...
   yourSetting: 'default'
 };
-```
+&#96;&#96;&#96;
 
 3. **Add to loadState()/saveState()**:
-```javascript
+&#96;&#96;&#96;javascript
 function loadState() {
   return {
     // ... existing ...
@@ -232,19 +232,19 @@ function loadState() {
 function saveState() {
   localStorage.setItem('gsd:yourSetting', appState.yourSetting);
 }
-```
+&#96;&#96;&#96;
 
 4. **Add Event Handler** (in UI Preferences section):
-```javascript
+&#96;&#96;&#96;javascript
 document.getElementById('your-setting-select')?.addEventListener('change', (e) => {
   appState.yourSetting = e.target.value;
   saveState();
 });
-```
+&#96;&#96;&#96;
 
 ### Adding a New Command (to CMDS array)
 
-```javascript
+&#96;&#96;&#96;javascript
 {
   id: "your-command",
   cmd: "/gsd-your-command [args]",
@@ -257,23 +257,23 @@ document.getElementById('your-setting-select')?.addEventListener('change', (e) =
   related: ["other-command-1", "other-command-2"],
   runtimes: RUNTIMES  // Or specific subset
 }
-```
+&#96;&#96;&#96;
 
 ═══════════════════════════════════════════════════════════════════════════════
 
 ## COMMON PATTERNS (COPY THESE)
 
 ### Pattern 1: Escaping HTML (Prevent XSS)
-```javascript
+&#96;&#96;&#96;javascript
 // ALWAYS escape user-facing content:
 const safe = escHtml(userInput);
 
 // In template literals:
 `<div>${escHtml(cmd.cmd)}</div>`
-```
+&#96;&#96;&#96;
 
 ### Pattern 2: Event Delegation (Don't Add Listeners in Loops)
-```javascript
+&#96;&#96;&#96;javascript
 // ✅ CORRECT (one listener, handles all):
 list.addEventListener('click', e => {
   const btn = e.target.closest('.cmd-row');
@@ -284,10 +284,10 @@ list.addEventListener('click', e => {
 commands.forEach(cmd => {
   btn.addEventListener('click', handleClick);
 });
-```
+&#96;&#96;&#96;
 
 ### Pattern 3: Debounced Search (Don't Render on Every Keystroke)
-```javascript
+&#96;&#96;&#96;javascript
 let searchTimer = null;
 input.addEventListener('input', e => {
   clearTimeout(searchTimer);
@@ -296,16 +296,16 @@ input.addEventListener('input', e => {
     renderCommands();
   }, 300);
 });
-```
+&#96;&#96;&#96;
 
 ### Pattern 4: Conditional Rendering (Show/Hide Elements)
-```javascript
+&#96;&#96;&#96;javascript
 // ✅ CORRECT (toggle display):
 element.style.display = condition ? 'flex' : 'none';
 
 // ✅ CORRECT (toggle class):
 element.classList.toggle('active', condition);
-```
+&#96;&#96;&#96;
 
 ### Pattern 5: Virtual Scrolling (Performance Optimization)
 
@@ -317,7 +317,7 @@ When command count exceeds 100, activate virtual scrolling:
 
 Current implementation: Standard rendering (fine for <100 commands)
 
-```javascript
+&#96;&#96;&#96;javascript
 // Threshold constant (already defined)
 const VIRTUAL_SCROLL_THRESHOLD = 100;
 
@@ -326,42 +326,42 @@ function renderVirtualizedCommands() {
   // TODO: Implement when needed
   renderCommands(); // Current: delegates to standard rendering
 }
-```
+&#96;&#96;&#96;
 
 ═══════════════════════════════════════════════════════════════════════════════
 
 ## GOTCHAS (COMMON MISTAKES TO AVOID)
 
 ### 1. Forgetting saveState()
-```javascript
+&#96;&#96;&#96;javascript
 // ❌ WRONG — State won't persist:
 appState.favorites.push(cmdId);
 
 // ✅ CORRECT:
 appState.favorites.push(cmdId);
 saveState();
-```
+&#96;&#96;&#96;
 
 ### 2. Hardcoding Colors
-```javascript
+&#96;&#96;&#96;javascript
 // ❌ WRONG — Breaks theme switching:
 style="color: #e8ff47"
 
 // ✅ CORRECT — Uses theme variable:
 style="color: var(--accent)"
-```
+&#96;&#96;&#96;
 
 ### 3. Not Escaping HTML
-```javascript
+&#96;&#96;&#96;javascript
 // ❌ WRONG — XSS vulnerability:
 `<div>${userInput}</div>`
 
 // ✅ CORRECT:
 `<div>${escHtml(userInput)}</div>`
-```
+&#96;&#96;&#96;
 
 ### 4. Modifying appState Directly in renderFunctions
-```javascript
+&#96;&#96;&#96;javascript
 // ❌ WRONG — State changes during render:
 function renderCommands() {
   appState.lastView = 'commands';  // Don't do this!
@@ -372,10 +372,10 @@ btn.addEventListener('click', () => {
   appState.lastView = 'commands';
   saveState();
 });
-```
+&#96;&#96;&#96;
 
 ### 5. Forgetting to Update Filter Chip UI
-```javascript
+&#96;&#96;&#96;javascript
 // ❌ WRONG — Variable changed but UI not updated:
 activeFilter = 'core';
 
@@ -386,7 +386,7 @@ saveState();
 document.querySelectorAll('.chip').forEach(c => {
   c.classList.toggle('on', c.dataset.cat === activeFilter);
 });
-```
+&#96;&#96;&#96;
 
 ═══════════════════════════════════════════════════════════════════════════════
 
@@ -3591,4 +3591,5 @@ renderCommands();
 </script>
 </body>
 </html>
+
 
