@@ -1,7 +1,7 @@
 # GSD Command Router
 
 <div align="center">
-  <img src="gsd-logo-2000-transparent.png" alt="GSD Command Router" width="80" height="80" style="margin-bottom: 20px;">
+  <img src="https://github.com/gsd-build/get-shit-done/blob/0171f7055371f345338226688eb394439ffd79f5/assets/gsd-logo-2000-transparent.png" alt="GSD Command Router" width="80" height="80" style="margin-bottom: 20px;">
 </div>
 
 ## why this exists
